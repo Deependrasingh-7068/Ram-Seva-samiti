@@ -156,7 +156,7 @@ export default function AdminDashboard() {
   const fetchVolunteers = async () => {
     try {
       setVolunteersLoading(true);
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/volunteers/all');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/all`);
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.volunteers)) {
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
     window.dispatchEvent(new CustomEvent('samiti_new_notification', { detail: localNotif }));
 
     try {
-      await fetch('${import.meta.env.VITE_API_URL}/api/notifications/create', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(notifPayload),

@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const NOTIF_API = '${import.meta.env.VITE_API_URL}/api/notifications/all';
+const NOTIF_API = `${import.meta.env.VITE_API_URL}/api/notifications/all`;
 
 function getSectionRoute(section) {
   switch ((section || '').toLowerCase()) {

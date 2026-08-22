@@ -18,7 +18,7 @@ export default function AdminLogin() {
   // Quick fill helper to fetch demo admin credentials from backend
   const fillDemoAdmin = async () => {
     try {
-      const res = await fetch("${import.meta.env.VITE_API_URL}/api/admin-auth/demo-admin");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/demo-admin`);
       const data = await res.json();
       if (data.success && data.admin) {
         setAadhaar(data.admin.aadhaar || "");
@@ -38,7 +38,7 @@ export default function AdminLogin() {
 
     try {
       const res = await fetch(
-        "${import.meta.env.VITE_API_URL}/api/admin-auth/login",
+        `${import.meta.env.VITE_API_URL}/api/admin-auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

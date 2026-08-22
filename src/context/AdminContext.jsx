@@ -7,7 +7,7 @@ import initialUpdates from '../data/updates';
 import initialSettings from '../data/settings';
 
 const AdminContext = createContext();
-const API_BASE = '${import.meta.env.VITE_API_URL}/api/content';
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/content`;
 
 function getSafeStorage(key, fallback) {
   try {

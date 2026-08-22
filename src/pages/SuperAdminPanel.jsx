@@ -56,7 +56,7 @@ export default function SuperAdminPanel() {
 
   const fetchAdmins = async () => {
     try {
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/list');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/list`);
       const data = await res.json();
       if (data.success) setAdmins(data.admins);
     } catch (err) { console.error(err); }
@@ -64,7 +64,7 @@ export default function SuperAdminPanel() {
 
   const fetchVolunteers = async () => {
     try {
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/volunteers/all');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/all`);
       const data = await res.json();
       if (data.success) setVolunteers(data.volunteers);
     } catch (err) { console.error(err); }
@@ -115,7 +115,7 @@ export default function SuperAdminPanel() {
       photo: adminPhoto || ''
     };
     try {
-      const res = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/create-admin', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/create-admin`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
       const data = await res.json();
       if (data.success) {
         alert(`Admin created successfully with ID: ${generatedAdminId}`);

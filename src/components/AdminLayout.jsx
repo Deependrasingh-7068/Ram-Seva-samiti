@@ -46,7 +46,7 @@ export default function AdminLayout() {
     const checkFreezeStatus = async () => {
       if (!adminInfo?.email && !adminInfo?.id) return;
       try {
-        const res = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/list');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/list`);
         const data = await res.json();
         if (data.success && Array.isArray(data.admins)) {
           const currentMe = data.admins.find(a => 
