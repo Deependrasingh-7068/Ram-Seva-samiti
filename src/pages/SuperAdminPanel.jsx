@@ -56,7 +56,7 @@ export default function SuperAdminPanel() {
 
   const fetchAdmins = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin-auth/list');
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/list');
       const data = await res.json();
       if (data.success) setAdmins(data.admins);
     } catch (err) { console.error(err); }
@@ -64,7 +64,7 @@ export default function SuperAdminPanel() {
 
   const fetchVolunteers = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/volunteers/all');
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/volunteers/all');
       const data = await res.json();
       if (data.success) setVolunteers(data.volunteers);
     } catch (err) { console.error(err); }
@@ -115,7 +115,7 @@ export default function SuperAdminPanel() {
       photo: adminPhoto || ''
     };
     try {
-      const res = await fetch('http://localhost:5000/api/admin-auth/create-admin', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/create-admin', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
       const data = await res.json();
       if (data.success) {
         alert(`Admin created successfully with ID: ${generatedAdminId}`);
@@ -130,7 +130,7 @@ export default function SuperAdminPanel() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to permanently delete this admin?')) {
       try {
-        await fetch(`http://localhost:5000/api/admin-auth/delete-admin/${id}`, { method: 'DELETE' });
+        await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/delete-admin/${id}`, { method: 'DELETE' });
         fetchAdmins();
       } catch (err) { console.error(err); }
     }
@@ -144,7 +144,7 @@ export default function SuperAdminPanel() {
     
     if (window.confirm(`Are you sure you want to ${actionText} admin ${adm.name}?`)) {
       try {
-        const res = await fetch(`http://localhost:5000/api/admin-auth/toggle-freeze/${targetId}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/toggle-freeze/${targetId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isFrozen: newFreezeState })
@@ -166,7 +166,7 @@ export default function SuperAdminPanel() {
     const newPassword = prompt('Enter new password for this admin:');
     if (newPassword) {
       try {
-        await fetch(`http://localhost:5000/api/admin-auth/reset-password/${id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/reset-password/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ newPassword }),
@@ -200,7 +200,7 @@ export default function SuperAdminPanel() {
       photo: editAdminPhoto || ''
     };
     try {
-      const res = await fetch(`http://localhost:5000/api/admin-auth/update-admin/${targetId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/update-admin/${targetId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -248,7 +248,7 @@ export default function SuperAdminPanel() {
       address: editVolAddress.trim(),
     };
     try {
-      const res = await fetch(`http://localhost:5000/api/volunteers/update-profile-secure`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/update-profile-secure`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -581,7 +581,7 @@ export default function SuperAdminPanel() {
                         if (dobCheck) {
                           setVerifyDobInput(dobCheck);
                           const targetId = editingAdmin._id || editingAdmin.id;
-                          fetch(`http://localhost:5000/api/admin-auth/verify-dob/${targetId}`, {
+                          fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/verify-dob/${targetId}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ dob: dobCheck })
