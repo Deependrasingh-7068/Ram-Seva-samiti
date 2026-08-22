@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  ::selection {
+    background: #df8a3f;
+    color: #101c30;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Cormorant Garamond', serif;
+    letter-spacing: 0.01em;
+  }
+  .font-hindi {
+    font-family: 'Tiro Devanagari Hindi', serif;
+  }
+  /* Visible keyboard focus everywhere */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #c8a45e;
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* राम watermark background, used behind selected sections only */
+  .ram-watermark {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ram-watermark span {
+    position: absolute;
+    font-family: 'Tiro Devanagari Hindi', serif;
+    color: #c8a45e;
+    opacity: 0.035;
+    font-size: clamp(3rem, 9vw, 7rem);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Scroll reveal base state, flipped by useScrollReveal hook */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal-stagger.is-visible > * {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0ms; }
+  .reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 90ms; }
+  .reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 180ms; }
+  .reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 270ms; }
+  .reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 360ms; }
+  .reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 450ms; }
+
+  .diya-divider {
+    background: linear-gradient(90deg, transparent, #c8a45e, transparent);
+    height: 1px;
+  }
+
+  .premium-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+    border: 1px solid rgba(200,164,94,0.16);
+    backdrop-filter: blur(6px);
+  }
+}
+
+/* Respect reduced motion system-wide */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal, .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Custom scrollbar, subtle premium touch */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #101c30;
+}
+::-webkit-scrollbar-thumb {
+  background: #182a45;
+  border: 2px solid #101c30;
+  border-radius: 999px;
+}
