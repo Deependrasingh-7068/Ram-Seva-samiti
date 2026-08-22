@@ -95,7 +95,7 @@ export default function Volunteer() {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/volunteers/apply', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/volunteers/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -150,7 +150,7 @@ export default function Volunteer() {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/volunteers/verify-card', {
+      const res = await fetch('${import.meta.env.VITE_API_URL}/api/volunteers/verify-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -14,7 +14,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
   // Backend se demo admin credentials fetch karne ke liye
   const fillDemoAdmin = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin-auth/demo-admin');
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/demo-admin');
       const data = await response.json();
       
       if (data.success && data.admin) {
@@ -35,7 +35,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin-auth/login', {
+      const response = await fetch('${import.meta.env.VITE_API_URL}/api/admin-auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ aadhaar, dob }),
