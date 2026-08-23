@@ -124,6 +124,8 @@ export default function SuperAdminPanel() {
       } else {
         alert(data.message || 'Failed to create admin');
       }
+    } catch (error) {
+      alert('Server error: could not reach the backend. Please check your connection or try again.');
     } finally { setLoading(false); }
   };
 
@@ -223,6 +225,46 @@ export default function SuperAdminPanel() {
       }
     } catch (err) { 
       console.error(err); 
+    }
+  };
+
+  // Toggle Volunteer Freeze / Unfreeze Status (SuperAdmin only)
+  const handleToggleFreezeVolunteer = async (vol) => {
+    const targetId = vol._id || vol.id;
+    const newFreezeState = !vol.isFrozen;
+    const actionText = newFreezeState ? 'freeze (block)' : 'unfreeze';
+
+    if (window.confirm(`Are you sure you want to ${actionText} volunteer ${vol.nameHindi}?`)) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/toggle-freeze/${targetId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isFrozen: newFreezeState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchVolunteers();
+        } else {
+          alert(data.message || 'Failed to update freeze status');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error updating volunteer freeze status');
+      }
+    }
+  };
+
+  // Permanently Delete Volunteer (SuperAdmin only)
+  const handleDeleteVolunteer = async (vol) => {
+    const targetId = vol._id || vol.id;
+    if (window.confirm(`Are you sure you want to permanently delete volunteer ${vol.nameHindi}? This cannot be undone.`)) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/remove/${targetId}`, { method: 'DELETE' });
+        fetchVolunteers();
+      } catch (err) {
+        console.error(err);
+        alert('Error deleting volunteer');
+      }
     }
   };
 
@@ -488,11 +530,14 @@ export default function SuperAdminPanel() {
 
               <div className="space-y-3">
                 {filteredVolunteers.length > 0 ? (
-                  filteredVolunteers.map((vol) => (
-                    <div key={vol._id || vol.volunteerId} className="bg-navy p-4 rounded-xl border border-gold/15 flex items-center justify-between gap-4 shadow-md">
+                  filteredVolunteers.map((vol) => {
+                    const isVolFrozen = vol.isFrozen;
+                    return (
+                    <div key={vol._id || vol.volunteerId} className={`p-4 rounded-xl border flex items-center justify-between gap-4 shadow-md ${isVolFrozen ? 'bg-red-950/20 border-red-500/30' : 'bg-navy border-gold/15'}`}>
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-navy-2 border border-gold/30 shrink-0">
+                        <div className="w-12 h-12 rounded-full overflow-hidden bg-navy-2 border border-gold/30 shrink-0 relative">
                           {vol.photo ? <img src={vol.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-saffron font-bold">👤</div>}
+                          {isVolFrozen && <span className="absolute inset-0 bg-red-600/50 flex items-center justify-center text-[8px] text-white font-bold">FROZEN</span>}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -503,15 +548,39 @@ export default function SuperAdminPanel() {
                                 Approved By: {vol.approvedBy}
                               </span>
                             )}
+                            {isVolFrozen && (
+                              <span className="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 font-semibold">
+                                FROZEN
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-cream/50 truncate mt-0.5">Phone: {vol.phone} | Address: {vol.address}</p>
                         </div>
                       </div>
-                      <button onClick={() => openEditVolunteerModal(vol)} className="px-4 py-2 rounded-xl bg-blue-500/15 text-blue-400 hover:bg-blue-500 hover:text-white text-xs font-semibold cursor-pointer shrink-0">
-                        Edit
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFreezeVolunteer(vol)}
+                          className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${
+                            isVolFrozen
+                              ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white'
+                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white'
+                          }`}
+                          title={isVolFrozen ? 'Click to Unfreeze Volunteer' : 'Click to Freeze Volunteer'}
+                        >
+                          {isVolFrozen ? <Lock size={13} /> : <Unlock size={13} />}
+                          <span>{isVolFrozen ? 'Frozen' : 'Active'}</span>
+                        </button>
+                        <button onClick={() => openEditVolunteerModal(vol)} className="px-4 py-2 rounded-xl bg-blue-500/15 text-blue-400 hover:bg-blue-500 hover:text-white text-xs font-semibold cursor-pointer">
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteVolunteer(vol)} className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-white cursor-pointer" title="Delete Volunteer">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="py-12 text-center text-xs text-cream/50">No volunteers found.</div>
                 )}

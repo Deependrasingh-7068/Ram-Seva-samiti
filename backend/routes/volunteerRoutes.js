@@ -8,7 +8,7 @@ function sanitizeDigits(val) {
   return String(val).replace(/\D/g, '').trim();
 }
 
-// 1. Volunteer Schema with Mandatory Aadhaar Field
+// 1. Volunteer Schema with Mandatory Aadhaar Field & isFrozen flag
 const VolunteerSchema = new mongoose.Schema(
   {
     volunteerId: { 
@@ -42,6 +42,10 @@ const VolunteerSchema = new mongoose.Schema(
     approvedBy: { type: String, default: '' },
     approvedByEmail: { type: String, default: '' },
     approvedAt: { type: Date },
+    isFrozen: { 
+      type: Boolean, 
+      default: false 
+    },
   },
   { 
     timestamps: true,
@@ -220,7 +224,6 @@ router.put('/update-profile-secure', async (req, res) => {
   try {
     const { volunteerId, aadhaarNumber, nameHindi, nameEnglish, phone, email, address } = req.body;
     
-    // Search by volunteerId or aadhaarNumber
     let query = {};
     if (volunteerId) query.volunteerId = volunteerId.trim();
     else if (aadhaarNumber) query.aadhaarNumber = String(aadhaarNumber).replace(/\D/g, '').trim();
@@ -246,5 +249,28 @@ router.put('/update-profile-secure', async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// 6. TOGGLE VOLUNTEER FREEZE / UNFREEZE STATUS (SUPPORTING BOTH /freeze/:id AND /toggle-freeze/:id)
+const handleFreezeToggle = async (req, res) => {
+  try {
+    const { isFrozen } = req.body;
+    const volunteer = await Volunteer.findByIdAndUpdate(
+      req.params.id,
+      { isFrozen: Boolean(isFrozen) },
+      { new: true }
+    );
+
+    if (!volunteer) {
+      return res.status(404).json({ success: false, message: 'Volunteer not found.' });
+    }
+
+    return res.json({ success: true, volunteer });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+router.put('/freeze/:id', handleFreezeToggle);
+router.put('/toggle-freeze/:id', handleFreezeToggle);
 
 module.exports = router;

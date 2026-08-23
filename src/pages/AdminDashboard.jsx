@@ -5,7 +5,7 @@ import {
   Plus, Trash2, Edit2, HeartHandshake, Calendar, X, MapPin, Clock, 
   Loader2, Image as ImageIcon, Flame, Utensils, Droplet, Sprout, 
   BookOpen, HandHeart, Heart, Sparkles, ImagePlus, Users, 
-  BellRing, UserCheck, ShieldCheck, CheckCircle2, XCircle, Search
+  BellRing, UserCheck, ShieldCheck, CheckCircle2, XCircle, Search, Lock
 } from 'lucide-react';
 
 const SEVA_ICONS = [
@@ -701,48 +701,57 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {displaySeva && displaySeva.length > 0 ? (
               displaySeva.map((item) => {
                 const IconObj = SEVA_ICONS.find(i => i.id === item.icon) || SEVA_ICONS[0];
                 const ItemIcon = IconObj.icon;
                 const itemId = item._id || item.id;
+                const author = item.adminName || (item.createdBy ? item.createdBy.split('@')[0] : 'Admin');
                 return (
-                  <div key={itemId} className="bg-navy-2 rounded-2xl border border-gold/20 flex flex-col justify-between overflow-hidden shadow-xl">
-                    <div className="p-5 space-y-3">
+                  <div key={itemId} className="bg-navy-2 rounded-2xl border border-gold/20 flex flex-col justify-between overflow-hidden shadow-xl max-w-sm mx-auto w-full">
+                    <div className="p-4 space-y-2.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-saffron/10 flex items-center justify-center text-saffron">
-                            <ItemIcon size={16} />
+                          <div className="w-7 h-7 rounded-lg bg-saffron/10 flex items-center justify-center text-saffron">
+                            <ItemIcon size={14} />
                           </div>
-                          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-saffron/15 text-saffron uppercase font-medium tracking-wider">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-saffron/15 text-saffron uppercase font-medium tracking-wider">
                             {item.category || 'General'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => handleOpenEditSeva(item)} className="p-2 rounded-lg bg-gold/10 text-gold hover:bg-gold/20 transition-colors cursor-pointer" title="Edit Card">
-                            <Edit2 size={14} />
+                          <button onClick={() => handleOpenEditSeva(item)} className="p-1.5 rounded-lg bg-gold/10 text-gold hover:bg-gold/20 transition-colors cursor-pointer" title="Edit Card">
+                            <Edit2 size={13} />
                           </button>
                           <button 
                             type="button" 
                             onClick={() => setDeleteTarget({ id: itemId, _id: itemId, type: 'seva', title: item.title })} 
-                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer" 
+                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer" 
                             title="Delete Card"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
                        
-                      <h3 className="text-lg font-display text-cream">{item.title}</h3>
-                      <p className="text-xs text-gold/80 font-medium">{item.subtitle || item.titleEnglish}</p>
+                      <h3 className="text-base font-display text-cream">{item.title}</h3>
+                      <p className="text-[11px] text-gold/80 font-medium">{item.subtitle || item.titleEnglish}</p>
                       <p className="text-xs text-cream/70 line-clamp-3 leading-relaxed">{item.description}</p>
 
                       {item.image && (
-                        <div className="w-full h-32 rounded-xl overflow-hidden border border-gold/15 mt-2">
+                        <div className="w-full h-28 rounded-xl overflow-hidden border border-gold/15 mt-2">
                           <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                         </div>
                       )}
+                    </div>
+
+                    {/* Footer without wrap text */}
+                    <div className="px-4 py-2.5 border-t border-gold/10 bg-navy/40 flex items-center justify-between text-[11px] text-cream/70 whitespace-nowrap">
+                      <span className="truncate">श्री राम सेवा समिति</span>
+                      <span className="font-semibold text-saffron truncate ml-2">
+                        By Admin: {author}
+                      </span>
                     </div>
                   </div>
                 );
@@ -1681,12 +1690,15 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             {volunteersLoading ? (
               <div className="py-16 text-center text-xs text-cream/50 flex flex-col items-center justify-center gap-2">
-                <Loader2 size={24} className="animate-spin text-saffron" />
+                <Loader2 size={16} className="animate-spin text-saffron" />
                 Loading volunteer requests...
               </div>
             ) : filteredVolunteers.length > 0 ? (
               filteredVolunteers.map((vol) => {
+                const isFrozen = vol.isFrozen; // SuperAdmin freeze flag
+
                 const statusColor = 
+                  isFrozen ? 'bg-red-500/20 text-red-400 border-red-500/40' :
                   vol.status === 'ACCEPTED' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' :
                   vol.status === 'REJECTED' ? 'bg-red-500/15 text-red-400 border-red-500/30' :
                   'bg-amber-500/15 text-amber-300 border-amber-500/30';
@@ -1697,15 +1709,24 @@ export default function AdminDashboard() {
                 return (
                   <div
                     key={vol._id || vol.volunteerId}
-                    className="bg-navy-2 border border-gold/20 rounded-2xl p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 shadow-xl hover:border-gold/40 transition-colors"
+                    className={`bg-navy-2 border rounded-2xl p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 shadow-xl transition-all ${
+                      isFrozen 
+                        ? 'border-red-500/40 opacity-50 bg-navy/40 grayscale pointer-events-none select-none' 
+                        : 'border-gold/20 hover:border-gold/40'
+                    }`}
                   >
                     <div className="flex items-start sm:items-center gap-4 min-w-0">
-                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold/40 bg-navy shrink-0 shadow-md">
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gold/40 bg-navy shrink-0 shadow-md relative">
                         {vol.photo ? (
                           <img src={vol.photo} alt={vol.nameHindi} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs text-cream/40 bg-navy-2">
                             No Photo
+                          </div>
+                        )}
+                        {isFrozen && (
+                          <div className="absolute inset-0 bg-red-950/70 flex items-center justify-center text-white font-bold text-[10px]">
+                            FROZEN
                           </div>
                         )}
                       </div>
@@ -1721,8 +1742,9 @@ export default function AdminDashboard() {
                           <span className="text-[10px] font-mono font-bold text-saffron bg-saffron/10 px-2 py-0.5 rounded border border-gold/20">
                             {vol.volunteerId}
                           </span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase border ${statusColor}`}>
-                            {vol.status || 'PENDING'}
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase border flex items-center gap-1 ${statusColor}`}>
+                            {isFrozen && <Lock size={10} />}
+                            {isFrozen ? 'FROZEN BY SUPERADMIN' : (vol.status || 'PENDING')}
                           </span>
                         </div>
 
@@ -1751,7 +1773,12 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-center">
-                      {isFinalized ? (
+                      {isFrozen ? (
+                        <div className="px-4 py-2 rounded-xl bg-red-950/40 border border-red-500/30 text-xs font-semibold text-red-400 flex items-center gap-2">
+                          <Lock size={14} />
+                          <span>Account Frozen</span>
+                        </div>
+                      ) : isFinalized ? (
                         <div className="px-4 py-2 rounded-xl bg-navy border border-gold/20 text-xs font-semibold text-gold flex items-center gap-2 shadow-inner">
                           <UserCheck size={14} className="text-saffron" />
                           <span>
@@ -1801,7 +1828,7 @@ export default function AdminDashboard() {
               <h1 className="font-display text-2xl text-saffron flex items-center gap-2">
                 <ShieldCheck size={24} /> SRSS Volunteers Master Ledger
               </h1>
-              <p className="text-xs text-cream/60 mt-1">SuperAdmin permanent records and volunteer removal authority.</p>
+              <p className="text-xs text-cream/60 mt-1">SuperAdmin permanent records, freeze control, and permanent removal authority.</p>
             </div>
             <span className="px-3.5 py-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold font-mono">
               {volunteersList.filter((v) => v.status === 'ACCEPTED').length} Active Volunteers
@@ -1811,21 +1838,26 @@ export default function AdminDashboard() {
           <div className="space-y-3">
             {volunteersList.map((vol) => {
               const isApprovedByMe = vol.approvedBy && vol.approvedBy.toLowerCase() === loggedAdminName.toLowerCase();
+              const isFrozen = vol.isFrozen;
+
               return (
                 <div
                   key={vol._id || vol.volunteerId}
-                  className="bg-navy-2 border border-gold/20 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xl"
+                  className={`bg-navy-2 border rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xl transition-all ${
+                    isFrozen ? 'border-red-500/40 opacity-75 bg-navy/50' : 'border-gold/20'
+                  }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-gold/30 bg-navy shrink-0">
+                    <div className="w-12 h-12 rounded-full overflow-hidden border border-gold/30 bg-navy shrink-0 relative">
                       <img src={vol.photo || '/avatar.png'} alt="" className="w-full h-full object-cover" />
+                      {isFrozen && <div className="absolute inset-0 bg-red-600/50 flex items-center justify-center text-[8px] text-white font-bold">FROZEN</div>}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono text-saffron font-bold text-xs">{vol.volunteerId}</span>
                         <h4 className="font-hindi font-bold text-cream text-sm truncate">{vol.nameHindi}</h4>
-                        <span className="text-[9px] px-2 py-0.5 rounded bg-saffron/10 text-gold uppercase font-semibold">
-                          {vol.status}
+                        <span className={`text-[9px] px-2 py-0.5 rounded uppercase font-semibold ${isFrozen ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-saffron/10 text-gold'}`}>
+                          {isFrozen ? 'FROZEN' : vol.status}
                         </span>
                       </div>
                       <p className="text-xs text-cream/50 mt-0.5 truncate">
@@ -1834,13 +1866,49 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmVolunteer(vol)}
-                    className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <Trash2 size={13} /> Remove
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* SuperAdmin Freeze / Unfreeze Toggle for Volunteer */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const newFreezeState = !isFrozen;
+                        try {
+                          const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/freeze/${vol._id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ isFrozen: newFreezeState })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setVolunteersList(prev => prev.map(v => v._id === vol._id ? { ...v, isFrozen: newFreezeState } : v));
+                          } else {
+                            alert(data.message || 'Failed to update volunteer status');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('Error connecting to server');
+                        }
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        isFrozen 
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white' 
+                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white'
+                      }`}
+                      title={isFrozen ? "Unfreeze Volunteer" : "Freeze Volunteer"}
+                    >
+                      {isFrozen ? <Lock size={13} /> : <Unlock size={13} />}
+                      <span>{isFrozen ? 'Frozen' : 'Active'}</span>
+                    </button>
+
+                    {/* Permanent Delete Button */}
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmVolunteer(vol)}
+                      className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Trash2 size={13} /> Remove
+                    </button>
+                  </div>
                 </div>
               );
             })}
