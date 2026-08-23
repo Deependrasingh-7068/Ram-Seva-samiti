@@ -112,13 +112,18 @@ router.post('/add', async (req, res) => {
       const hindiName = bodyData.nameHindi || bodyData.title || 'समिति सदस्य';
       const englishName = bodyData.nameEnglish || '';
       const memberBio = bodyData.bio || bodyData.description || '';
+      const finalRoleEnglish = bodyData.roleEnglish || bodyData.role || bodyData.designation || 'Member';
+      const finalRoleHindi = bodyData.roleHindi || bodyData.designationHindi || 'सदस्य';
 
       const newMember = new Member({
         nameHindi: hindiName,
         name: englishName || hindiName,
         nameEnglish: englishName,
-        roleHindi: bodyData.roleHindi || bodyData.designationHindi || 'सदस्य',
-        role: bodyData.roleEnglish || bodyData.role || bodyData.designation || 'Member',
+        roleHindi: finalRoleHindi,
+        roleEnglish: finalRoleEnglish,
+        role: finalRoleEnglish,
+        designation: finalRoleEnglish,
+        designationHindi: finalRoleHindi,
         phone: bodyData.phone || '',
         email: bodyData.email || '',
         aadhar: bodyData.aadhar || '',
