@@ -21,7 +21,7 @@ const ADMIN_SECTIONS = [
 ];
 
 export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [adminInfo, setAdminInfo] = useState(() => {
     return JSON.parse(localStorage.getItem('adminInfo') || '{}');
@@ -125,7 +125,7 @@ export default function AdminLayout() {
       )}
 
       {/* ================= ADMIN TOP NAVBAR ================= */}
-      <header className="relative w-full bg-navy-2 border-b border-gold/15 px-6 py-3.5 flex items-center justify-between gap-4 z-50 shadow-2xl">
+      <header className="relative w-full bg-navy-2 border-b border-gold/15 px-4 md:px-6 py-3.5 flex items-center justify-between gap-4 z-[70] shadow-2xl">
         
         {/* Left: Profile Picture, Name + Admin ID, & Email */}
         <div className="flex items-center gap-3.5 z-10">
@@ -240,11 +240,52 @@ export default function AdminLayout() {
         </div>
       </header>
 
+      {/* ================= MOBILE TOP DROPDOWN (Management Sections) ================= */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/60 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <div
+        className={`lg:hidden w-full bg-navy-2 border-b border-gold/15 shadow-2xl overflow-hidden transition-all duration-300 z-[65] relative ${
+          sidebarOpen ? 'max-h-[70vh]' : 'max-h-0'
+        }`}
+      >
+        <div className="px-3 py-3 text-xs font-semibold text-gold/60 uppercase tracking-wider border-b border-gold/10 flex items-center justify-between">
+          <span>Management Sections</span>
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Live Sync"></span>
+        </div>
+        <nav className="px-3 py-3 space-y-1.5 overflow-y-auto max-h-[60vh]">
+          {ADMIN_SECTIONS.map((section) => {
+            const Icon = section.icon;
+            return (
+              <NavLink
+                key={section.path}
+                to={section.path}
+                end={section.path === '/admin'}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-saffron text-navy shadow-lg font-semibold shadow-saffron/20'
+                      : 'text-cream/80 hover:bg-navy hover:text-cream'
+                  }`
+                }
+              >
+                <Icon size={18} />
+                <span>{section.name}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
+
       {/* ================= MAIN BODY ================= */}
       <div className="flex flex-1 w-full overflow-hidden">
         
-        {/* Sidebar */}
-        <aside className={`w-72 shrink-0 bg-navy-2 border-r border-gold/15 flex flex-col transition-all duration-300 ${sidebarOpen ? 'block' : 'hidden lg:flex'}`}>
+        {/* Sidebar (Desktop only — mobile uses the top dropdown panel above) */}
+        <aside className="hidden lg:flex w-72 shrink-0 bg-navy-2 border-r border-gold/15 flex-col">
           <div className="p-4 text-xs font-semibold text-gold/60 uppercase tracking-wider border-b border-gold/10 flex items-center justify-between">
             <span>Management Sections</span>
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Live Sync"></span>
@@ -275,7 +316,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 bg-navy overflow-y-auto p-6 lg:p-8 w-full">
+        <main className="flex-1 bg-navy overflow-y-auto p-4 md:p-6 lg:p-8 w-full">
           <div className="w-full max-w-none">
             <Outlet />
           </div>

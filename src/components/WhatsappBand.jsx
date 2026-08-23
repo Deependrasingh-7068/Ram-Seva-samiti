@@ -1,12 +1,8 @@
 import { MessageCircle } from 'lucide-react';
 import useScrollReveal from '../hooks/useScrollReveal';
-// 1. Import useAuth
-import { useAuth } from '../context/AuthContext';
 
 export default function WhatsappBand() {
   const ref = useScrollReveal();
-  // 2. Extract user and setAuthOpen from context
-  const { user, setAuthOpen } = useAuth();
   
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
@@ -22,17 +18,9 @@ export default function WhatsappBand() {
           सेवा से जुड़ी सूचनाएं, कार्यक्रम अपडेट और सामुदायिक चर्चाओं के लिए हमारे व्हाट्सएप समूह से जुड़ें।
         </p>
         <a
-          // 3. Conditionally change href based on login state
-          href={user ? whatsappGroupLink : "#"}
-          target={user ? "_blank" : undefined}
+          href={whatsappGroupLink}
+          target="_blank"
           rel="noopener noreferrer"
-          // 4. Intercept the click if not logged in
-          onClick={(e) => {
-            if (!user) {
-              e.preventDefault();
-              setAuthOpen(true);
-            }
-          }}
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-medium transition-colors shadow-lg"
         >
           <MessageCircle size={18} />

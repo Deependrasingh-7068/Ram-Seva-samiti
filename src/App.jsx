@@ -65,7 +65,7 @@ function AppShell() {
         {!isAdminRoute && (
           <header className="fixed top-0 left-0 w-full z-[100] flex flex-col">
             <AnnouncementBar />
-            <Navbar onMenuOpen={() => setMenuOpen(true)} />
+            <Navbar menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((o) => !o)} />
           </header>
         )}
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Menu, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Menu, X, MessageCircle, ShieldCheck } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
 import NotificationBell from './NotificationBell';
 import AdminLoginModal from './AdminLoginModal';
@@ -16,7 +16,7 @@ const LINKS = [
   { to: '/donate', label: 'Donate' },
 ];
 
-export default function Navbar({ onMenuOpen }) {
+export default function Navbar({ menuOpen, onMenuToggle }) {
   const scrolled = useScrollNav(40);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const location = useLocation();
@@ -102,11 +102,11 @@ export default function Navbar({ onMenuOpen }) {
             {/* Mobile Menu Button */}
             <button
               type="button"
-              onClick={onMenuOpen}
-              aria-label="Open menu"
+              onClick={onMenuToggle}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               className="lg:hidden p-2 rounded-md text-cream hover:text-saffron transition-colors"
             >
-              <Menu size={26} />
+              {menuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </nav>

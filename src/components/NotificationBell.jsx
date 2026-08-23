@@ -156,7 +156,7 @@ export default function NotificationBell() {
 
       {/* Notification Dropdown Box */}
       {open && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-navy-2 border border-gold/30 rounded-2xl shadow-2xl z-[100] overflow-hidden backdrop-blur-md">
+        <div className="fixed left-3 right-3 top-[100px] sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-96 sm:max-w-[90vw] max-h-[75vh] bg-navy-2 border border-gold/30 rounded-2xl shadow-2xl z-[100] overflow-hidden backdrop-blur-md flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gold/15 flex items-center justify-between bg-navy/80">
             <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export default function NotificationBell() {
           </div>
 
           {/* List Container */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-gold/10 [scrollbar-width:none]">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-gold/10 [scrollbar-width:none]">
             {notifications.length > 0 ? (
               notifications.map((n, idx) => {
                 const targetLink = getSectionRoute(n.section);

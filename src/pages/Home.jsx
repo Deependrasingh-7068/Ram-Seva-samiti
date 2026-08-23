@@ -9,7 +9,6 @@ import MemberCard from '../components/MemberCard';
 import WhatsappBand from '../components/WhatsappBand';
 import useScrollReveal from '../hooks/useScrollReveal';
 import settings from '../data/settings';
-import { useAuth } from '../context/AuthContext';
 import { useAdmin } from '../context/AdminContext';
 
 function SectionHeading({ eyebrow, hindiTitle, englishTitle }) {
@@ -29,8 +28,6 @@ function formatQuote(text) {
 }
 
 export default function Home() {
-  const { user, setAuthOpen } = useAuth();
-  
   const { 
     seva = [], 
     events = [], 
@@ -197,12 +194,6 @@ export default function Home() {
           </p>
           <Link
             to="/donate"
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault();
-                setAuthOpen(true);
-              }
-            }}
             className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-semibold transition-all shadow-md cursor-pointer text-xs"
           >
             <HeartHandshake size={15} />
@@ -364,12 +355,6 @@ export default function Home() {
           </p>
           <Link
             to="/volunteer"
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault();
-                setAuthOpen(true);
-              }
-            }}
             className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full border border-gold/40 text-cream hover:border-gold hover:text-gold transition-all cursor-pointer text-xs font-medium shadow-sm"
           >
             Join as Volunteer

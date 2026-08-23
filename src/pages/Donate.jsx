@@ -6,8 +6,8 @@ import RamBackground from '../components/RamBackground';
 import { useAuth } from '../context/AuthContext';
 
 export default function Donate() {
-  // 2. Extract user and setAuthOpen from context
-  const { user, setAuthOpen } = useAuth();
+  // Extract user from context (used to auto-fill the form if already logged in)
+  const { user } = useAuth();
 
   const [amount, setAmount] = useState(501);
   const [customAmount, setCustomAmount] = useState('');
@@ -40,12 +40,6 @@ export default function Donate() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // 3. THE INTERCEPTION: Block submission and open modal if not logged in
-    if (!user) {
-      setAuthOpen(true);
-      return; 
-    }
 
     // Frontend-only in this phase: a real submit creates a payment order
     // on the backend (Razorpay/Cashfree) and never trusts a client-side

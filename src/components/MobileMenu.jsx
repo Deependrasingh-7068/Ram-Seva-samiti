@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { X, MessageCircle, LogIn, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { X, MessageCircle } from 'lucide-react';
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -17,9 +16,6 @@ const LINKS = [
 ];
 
 export default function MobileMenu({ open, onClose }) {
-  // Pull user and global setAuthOpen from context
-  const { user, logout, setAuthOpen } = useAuth();
-  
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
 
@@ -38,7 +34,7 @@ export default function MobileMenu({ open, onClose }) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[110] lg:hidden transition-opacity duration-300 ${
         open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}
       role="dialog"
@@ -72,16 +68,7 @@ export default function MobileMenu({ open, onClose }) {
               <NavLink
                 to={link.to}
                 end={link.to === '/'}
-                onClick={(e) => {
-                  // Intercept Donate or Volunteer if user is not logged in
-                  if ((link.label === 'Donate' || link.label === 'Volunteer') && !user) {
-                    e.preventDefault();
-                    onClose();
-                    setAuthOpen(true);
-                  } else {
-                    onClose();
-                  }
-                }}
+                onClick={onClose}
                 className={({ isActive }) =>
                   `font-display text-3xl transition-colors ${
                     isActive ? 'text-saffron' : 'text-cream/85 hover:text-saffron'
@@ -94,38 +81,12 @@ export default function MobileMenu({ open, onClose }) {
           ))}
         </ul>
 
-        {user ? (
-          <button
-            type="button"
-            onClick={() => {
-              logout();
-              onClose();
-            }}
-            className="mt-auto mb-3 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-gold/25 text-cream/85 cursor-pointer"
-          >
-            <LogOut size={18} />
-            Sign out ({user.name || user.email.split('@')[0]})
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              setAuthOpen(true);
-            }}
-            className="mt-auto mb-3 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-gold/25 text-cream/85 cursor-pointer"
-          >
-            <LogIn size={18} />
-            Sign In
-          </button>
-        )}
-
         <a
           href={whatsappGroupLink}
           target="_blank"
           rel="noopener noreferrer"
           onClick={onClose}
-          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-medium shadow-lg transition-colors cursor-pointer"
+          className="mt-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-medium shadow-lg transition-colors cursor-pointer"
         >
           <MessageCircle size={18} />
           Join WhatsApp Community

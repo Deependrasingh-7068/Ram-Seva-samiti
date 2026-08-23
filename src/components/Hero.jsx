@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom';
 import { HeartHandshake, MessageCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 
 export default function Hero() {
-  const { user, setAuthOpen } = useAuth();
   
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
@@ -56,12 +54,6 @@ export default function Hero() {
           {/* Donate Button */}
           <Link
             to="/donate"
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault();
-                setAuthOpen(true);
-              }
-            }}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-semibold transition-all shadow-lg hover:shadow-saffron/25"
           >
             <HeartHandshake size={19} />

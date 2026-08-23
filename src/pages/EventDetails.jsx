@@ -2,8 +2,6 @@ import { Link, useParams } from 'react-router-dom';
 import { Calendar, Clock, MapPin, ArrowLeft } from 'lucide-react';
 import events from '../data/events';
 import NotFound from './NotFound';
-// 1. Import useAuth
-import { useAuth } from '../context/AuthContext';
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('en-IN', {
@@ -16,9 +14,6 @@ function formatDate(iso) {
 export default function EventDetails() {
   const { slug } = useParams();
   const event = events.find((e) => e.slug === slug);
-  
-  // 2. Extract user and setAuthOpen from context
-  const { user, setAuthOpen } = useAuth();
 
   if (!event) return <NotFound />;
 
@@ -68,13 +63,6 @@ export default function EventDetails() {
         {event.registrationRequired && event.status === 'upcoming' && (
           <a
             href="#register"
-            // 3. Intercept the Register button click
-            onClick={(e) => {
-              if (!user) {
-                e.preventDefault();
-                setAuthOpen(true);
-              }
-            }}
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-medium transition-colors"
           >
             Register Now
