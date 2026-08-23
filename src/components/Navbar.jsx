@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, MessageCircle, ShieldCheck } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
 import NotificationBell from './NotificationBell';
@@ -20,6 +20,19 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
   const scrolled = useScrollNav(40);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Agar admin pehle se logged in hai (adminInfo localStorage mein hai),
+  // to "Admin" button seedha /admin dashboard pe le jaaye — login modal na khule
+  const handleAdminClick = () => {
+    const savedAdmin = JSON.parse(localStorage.getItem('adminInfo') || '{}');
+    const isLoggedIn = savedAdmin && (savedAdmin.id || savedAdmin.adminId || savedAdmin.email);
+    if (isLoggedIn) {
+      navigate('/admin');
+    } else {
+      setAdminModalOpen(true);
+    }
+  };
 
   // Check if the current user is viewing Admin Dashboard pages
   const isAdminDashboard = location.pathname.startsWith('/admin');
@@ -89,10 +102,10 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
               </a>
             )}
 
-           {/* ADMIN BUTTON WITH GRADIENT */}
+                      {/* ADMIN BUTTON WITH GRADIENT */}
             <button
               type="button"
-              onClick={() => setAdminModalOpen(true)}
+              onClick={handleAdminClick}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-gold/20 via-saffron/20 to-gold/30 border border-gold/40 text-saffron hover:border-saffron hover:from-saffron/30 hover:to-saffron/40 hover:text-cream transition-all duration-300 text-sm font-medium shadow-md cursor-pointer"
             >
               <ShieldCheck size={16} />

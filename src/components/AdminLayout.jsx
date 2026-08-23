@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
-  Home, Image, Users, Calendar, HeartHandshake, FileText, Bell, Info, Shield, Menu, X, LogOut, LayoutDashboard, Phone, Award, AlertTriangle, ShieldCheck, Sparkles, CreditCard, Lock 
+  Home, Image, Users, Calendar, HeartHandshake, FileText, Bell, Info, Shield, Menu, X, LogOut, LayoutDashboard, Phone, Award, AlertTriangle, ShieldCheck, Sparkles, CreditCard, Lock, Globe 
 } from 'lucide-react';
 
 const ADMIN_SECTIONS = [
@@ -160,10 +160,16 @@ export default function AdminLayout() {
               </span>
             </div>
             
-            {/* Email below Name & ID */}
-            <div className="flex items-center gap-2 mt-0.5">
+                        {/* Email below Name & ID */}
+            <div className="flex flex-col gap-1 mt-0.5">
               <span className="text-xs text-cream/70 truncate max-w-[220px]">
                 {adminInfo.email || ''}
+              </span>
+
+              {/* Phone number — mobile only. Desktop pe ye already right-side panel mein dikh raha hai */}
+              <span className="lg:hidden flex items-center gap-1.5 text-xs text-cream/70">
+                <Phone size={12} className="text-saffron" />
+                {adminInfo.contact || 'NA'}
               </span>
             </div>
           </div>
@@ -229,13 +235,14 @@ export default function AdminLayout() {
             )}
           </div>
 
-          <button
+                    <button
             type="button"
             onClick={() => setLogoutModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all cursor-pointer shadow-sm"
+            title="Sign Out"
+            aria-label="Sign Out"
+            className="flex items-center justify-center p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-all cursor-pointer shadow-sm"
           >
-            <LogOut size={14} />
-            <span>Sign Out</span>
+            <LogOut size={18} />
           </button>
         </div>
       </header>
@@ -252,11 +259,21 @@ export default function AdminLayout() {
           sidebarOpen ? 'max-h-[70vh]' : 'max-h-0'
         }`}
       >
-        <div className="px-3 py-3 text-xs font-semibold text-gold/60 uppercase tracking-wider border-b border-gold/10 flex items-center justify-between">
+               <div className="px-3 py-3 text-xs font-semibold text-gold/60 uppercase tracking-wider border-b border-gold/10 flex items-center justify-between">
           <span>Management Sections</span>
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="Live Sync"></span>
         </div>
         <nav className="px-3 py-3 space-y-1.5 overflow-y-auto max-h-[60vh]">
+          {/* View Website — user/public site pe jaane ke liye, bina sign out kiye */}
+          <Link
+            to="/"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-saffron/10 text-saffron border border-saffron/25 hover:bg-saffron/20 mb-1.5"
+          >
+            <Globe size={18} />
+            <span>View Website <span className="font-hindi text-xs opacity-80">(साइट देखें)</span></span>
+          </Link>
+
           {ADMIN_SECTIONS.map((section) => {
             const Icon = section.icon;
             return (

@@ -35,7 +35,7 @@ export default function Hero() {
 
         {/* PREMIUM STYLED RAM SEWA SAMITI TEXT */}
         <h1 className="font-display text-4xl md:text-6xl lg:text-7xl tracking-[0.15em] mb-6 font-extrabold uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-gold to-saffron drop-shadow-[0_4px_16px_rgba(230,126,34,0.45)]">
-          RAM SEWA SAMITI
+          RAM SEVA SAMITI
         </h1>
 
         <div className="flex items-center justify-center gap-3 text-saffron font-hindi text-lg md:text-xl mb-6">

@@ -21,6 +21,9 @@ export default function Footer() {
   // Seamless loop ke liye sirf 2 bar duplicate kiya taaki extra copies na dikhein
   const marqueeMembers = [...activeMembers, ...activeMembers];
 
+  // Google Maps search query link address ke liye
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`;
+
   return (
     <footer className="relative bg-navy border-t border-gold/10 pt-16 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-10 pb-14">
@@ -48,9 +51,16 @@ export default function Footer() {
         <div>
           <h4 className="text-sm uppercase tracking-[0.15em] text-gold/80 mb-4">Contact</h4>
           <ul className="space-y-3 text-sm text-cream/65">
-            <li className="flex items-start gap-2">
-              <MapPin size={15} className="text-saffron mt-0.5 shrink-0" />
-              {settings.address}
+            <li>
+              <a 
+                href={googleMapsUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-start gap-2 hover:text-saffron transition-colors group cursor-pointer"
+              >
+                <MapPin size={15} className="text-saffron mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
+                <span>{settings.address}</span>
+              </a>
             </li>
             <li className="flex items-center gap-2">
               <Phone size={15} className="text-saffron shrink-0" />
