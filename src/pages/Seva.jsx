@@ -7,7 +7,6 @@ export default function Seva() {
   const ref = useScrollReveal();
   const [activeCategory, setActiveCategory] = useState('All');
   
-  // Admin Context se dynamic seva list fetch karna
   const { seva = [] } = useAdmin();
 
   const categories = useMemo(() => {
@@ -57,7 +56,7 @@ export default function Seva() {
           {filtered && filtered.length > 0 ? (
             filtered.map((item) => {
               const sevaKey = item._id || item.id || Math.random();
-              return <SevaCard key={sevaKey} {...item} id={sevaKey} />;
+              return <SevaCard key={sevaKey} {...item} id={sevaKey} enableModal={true} />;
             })
           ) : (
             <div className="col-span-full py-16 text-center text-sm text-cream/50 bg-navy-2/40 rounded-2xl border border-gold/10">

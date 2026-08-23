@@ -241,7 +241,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Gallery preview */}
+      {/* Gallery preview - Updated with Link to /gallery */}
       <section className="py-14 bg-navy-2">
         <div className="max-w-3xl mx-auto px-4">
           <SectionHeading
@@ -251,14 +251,18 @@ export default function Home() {
           />
           <div ref={galleryRef} className="reveal-stagger grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {previewGallery.map((item) => (
-              <div key={item._id || item.id} className="aspect-square rounded-xl overflow-hidden bg-navy border border-gold/15 shadow-sm">
+              <Link
+                key={item._id || item.id}
+                to="/gallery"
+                className="aspect-square rounded-xl overflow-hidden bg-navy border border-gold/15 shadow-sm block group cursor-pointer"
+              >
                 <img
                   src={item.image}
                   alt={item.title || item.caption || 'Gallery Image'}
                   loading="lazy"
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-              </div>
+              </Link>
             ))}
           </div>
           <div className="text-center mt-6">
@@ -363,7 +367,6 @@ export default function Home() {
             onClick={(e) => {
               if (!user) {
                 e.preventDefault();
-                setAuthOpen(test => true); // handles auth modal opening properly
                 setAuthOpen(true);
               }
             }}

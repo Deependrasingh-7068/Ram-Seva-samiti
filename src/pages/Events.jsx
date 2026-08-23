@@ -86,7 +86,8 @@ export default function Events() {
           >
             {filtered.map((event) => {
               const eventKey = event._id || event.id || event.slug || Math.random();
-              return <EventCard key={eventKey} event={event} />;
+              // enableModal={true} pass kiya hai taaki Events page par click karne par zoom modal khule
+              return <EventCard key={eventKey} event={event} enableModal={true} />;
             })}
           </div>
         )}

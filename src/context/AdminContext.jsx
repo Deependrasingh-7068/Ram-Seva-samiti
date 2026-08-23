@@ -30,7 +30,6 @@ export function AdminProvider({ children }) {
     return getSafeStorage('adminInfo', {});
   });
 
-  // Listen for real-time admin profile, photo, and data synchronization
   useEffect(() => {
     const syncAdmin = (e) => {
       if (e?.detail) {
@@ -56,7 +55,7 @@ export function AdminProvider({ children }) {
     try {
       const [galRes, evRes, sevRes, memRes, updRes] = await Promise.all([
         fetch(`${API_BASE}/public-all/gallery`).catch(() => null),
-        fetch(`${API_BASE}/public-all/events`).catch(() => null),
+        fetch(`${import.meta.env.VITE_API_URL}/api/events/all`).catch(() => null),
         fetch(`${API_BASE}/public-all/seva`).catch(() => null),
         fetch(`${API_BASE}/public-all/members`).catch(() => null),
         fetch(`${API_BASE}/public-all/updates`).catch(() => null),
@@ -168,7 +167,13 @@ export function AdminProvider({ children }) {
       createdAt: new Date().toISOString(),
     };
 
-    if (type === 'updates' || type === 'update') {
+    if (type === 'events' || type === 'event') {
+      setEvents((prev) => {
+        const next = [localPayload, ...(prev || []).filter((e) => (e?._id || e?.id) !== targetId)];
+        localStorage.setItem('admin_events', JSON.stringify(next));
+        return next;
+      });
+    } else if (type === 'updates' || type === 'update') {
       setUpdates((prev) => {
         const next = [localPayload, ...(prev || []).filter((u) => (u?._id || u?.id) !== targetId)];
         localStorage.setItem('admin_updates', JSON.stringify(next));
@@ -178,12 +183,6 @@ export function AdminProvider({ children }) {
       setSeva((prev) => {
         const next = [localPayload, ...(prev || []).filter((s) => (s?._id || s?.id) !== targetId)];
         localStorage.setItem('admin_seva', JSON.stringify(next));
-        return next;
-      });
-    } else if (type === 'events' || type === 'event') {
-      setEvents((prev) => {
-        const next = [localPayload, ...(prev || []).filter((e) => (e?._id || e?.id) !== targetId)];
-        localStorage.setItem('admin_events', JSON.stringify(next));
         return next;
       });
     } else if (type === 'gallery') {
@@ -211,34 +210,52 @@ export function AdminProvider({ children }) {
     };
 
     try {
-      if (isMongoId) {
-        await fetch(`${API_BASE}/update/${item._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(finalBackendData),
-        });
-      } else {
-        const res = await fetch(`${API_BASE}/add`, {
+      if (type === 'events' || type === 'event') {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(finalBackendData),
         });
-
         if (res.ok) {
           const resData = await res.json();
           if (resData.item && resData.item._id) {
-            if (type === 'updates' || type === 'update') {
-              setUpdates((prev) => {
-                const next = (prev || []).map((u) => ((u?._id || u?.id) === targetId ? resData.item : u));
-                localStorage.setItem('admin_updates', JSON.stringify(next));
-                return next;
-              });
-            } else if (type === 'members' || type === 'member') {
-              setMembers((prev) => {
-                const next = (prev || []).map((m) => ((m?._id || m?.id) === targetId ? resData.item : m));
-                localStorage.setItem('admin_members', JSON.stringify(next));
-                return next;
-              });
+            setEvents((prev) => {
+              const next = (prev || []).map((e) => ((e?._id || e?.id) === targetId ? resData.item : e));
+              localStorage.setItem('admin_events', JSON.stringify(next));
+              return next;
+            });
+          }
+        }
+      } else {
+        if (isMongoId) {
+          await fetch(`${API_BASE}/update/${item._id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalBackendData),
+          });
+        } else {
+          const res = await fetch(`${API_BASE}/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalBackendData),
+          });
+
+          if (res.ok) {
+            const resData = await res.json();
+            if (resData.item && resData.item._id) {
+              if (type === 'updates' || type === 'update') {
+                setUpdates((prev) => {
+                  const next = (prev || []).map((u) => ((u?._id || u?.id) === targetId ? resData.item : u));
+                  localStorage.setItem('admin_updates', JSON.stringify(next));
+                  return next;
+                });
+              } else if (type === 'members' || type === 'member') {
+                setMembers((prev) => {
+                  const next = (prev || []).map((m) => ((m?._id || m?.id) === targetId ? resData.item : m));
+                  localStorage.setItem('admin_members', JSON.stringify(next));
+                  return next;
+                });
+              }
             }
           }
         }
@@ -258,7 +275,13 @@ export function AdminProvider({ children }) {
                  rawNormalized === 'event' ? 'events' :
                  rawNormalized === 'update' ? 'updates' : rawNormalized;
 
-    if (type === 'updates' || type === 'update') {
+    if (type === 'events' || type === 'event') {
+      setEvents((prev) => {
+        const next = (prev || []).filter((e) => (e?._id || e?.id) !== targetId);
+        localStorage.setItem('admin_events', JSON.stringify(next));
+        return next;
+      });
+    } else if (type === 'updates' || type === 'update') {
       setUpdates((prev) => {
         const next = (prev || []).filter((u) => (u?._id || u?.id) !== targetId);
         localStorage.setItem('admin_updates', JSON.stringify(next));
@@ -268,12 +291,6 @@ export function AdminProvider({ children }) {
       setSeva((prev) => {
         const next = (prev || []).filter((s) => (s?._id || s?.id) !== targetId);
         localStorage.setItem('admin_seva', JSON.stringify(next));
-        return next;
-      });
-    } else if (type === 'events' || type === 'event') {
-      setEvents((prev) => {
-        const next = (prev || []).filter((e) => (e?._id || e?.id) !== targetId);
-        localStorage.setItem('admin_events', JSON.stringify(next));
         return next;
       });
     } else if (type === 'gallery') {
@@ -292,7 +309,10 @@ export function AdminProvider({ children }) {
 
     try {
       if (String(targetId).length === 24 && !String(targetId).includes('-')) {
-        await fetch(`${API_BASE}/delete/${targetId}`, { method: 'DELETE' });
+        const deleteUrl = type === 'events' || type === 'event'
+          ? `${import.meta.env.VITE_API_URL}/api/events/delete/${targetId}`
+          : `${API_BASE}/delete/${targetId}`;
+        await fetch(deleteUrl, { method: 'DELETE' });
       }
     } catch (e) {
       console.error('Delete from DB failed:', e);
