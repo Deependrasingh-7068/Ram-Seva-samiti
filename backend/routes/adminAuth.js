@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const sendAdminCredentials = require('../utils/sendEmail');
 const bcrypt = require('bcryptjs'); // Assuming bcrypt is used for password comparison if hashed
+const jwt = require('jsonwebtoken'); // Assuming bcrypt is used for password comparison if hashed
 
 const sanitizeField = (val) => {
   if (!val || typeof val !== 'string' || val.trim().length === 0) return 'NA';
@@ -305,6 +306,34 @@ router.post('/verify-dob/:id', async (req, res) => {
     }
 
     res.status(200).json({ success: true, aadhaar: admin.aadhaar });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 12. Super Admin Login — fixed ID/Password from .env, koi DB lookup nahi
+router.post('/superadmin-login', (req, res) => {
+  try {
+    const { superAdminId, password } = req.body;
+
+    if (!superAdminId || !password) {
+      return res.status(400).json({ success: false, message: 'Super Admin ID and Password are required.' });
+    }
+
+    const validId = process.env.SUPERADMIN_ID;
+    const validPassword = process.env.SUPERADMIN_PASSWORD;
+
+    if (superAdminId.trim() !== validId || password !== validPassword) {
+      return res.status(401).json({ success: false, message: 'Invalid Super Admin ID or Password.' });
+    }
+
+    const token = jwt.sign(
+      { role: 'superadmin', id: validId },
+      process.env.JWT_SECRET,
+      { expiresIn: '12h' }
+    );
+
+    res.status(200).json({ success: true, token });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

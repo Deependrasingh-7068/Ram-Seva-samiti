@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { X, MessageCircle } from 'lucide-react';
+import { NavLink, Link } from 'react-router-dom';
+import { X, MessageCircle, Crown } from 'lucide-react';
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -50,16 +50,35 @@ export default function MobileMenu({ open, onClose }) {
           open ? 'translate-x-0' : 'translate-x-6'
         }`}
       >
-        <div className="flex items-center justify-between mb-10">
-          <span className="font-hindi text-2xl text-gold">राम</span>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close menu"
-            className="p-2 text-cream hover:text-saffron transition-colors cursor-pointer"
-          >
-            <X size={26} />
-          </button>
+                <div className="flex items-center justify-between gap-3 mb-10">
+          <span className="font-hindi text-lg sm:text-2xl text-gold truncate min-w-0">
+            श्री राम सेवा समिति
+          </span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* SuperAdmin Button — Admin se zyada premium (gold gradient + Crown icon) */}
+            <Link
+              to="/superadmin"
+              onClick={onClose}
+              aria-label="Super Admin Panel"
+              title="Super Admin Panel"
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-2.5 sm:pr-3.5 py-2 rounded-full bg-gradient-to-r from-amber-300 via-gold to-amber-500 border border-amber-200/60 text-navy shadow-[0_0_18px_rgba(200,164,94,0.45)] hover:shadow-[0_0_26px_rgba(200,164,94,0.65)] active:scale-95 transition-all duration-300 cursor-pointer"
+            >
+              <Crown size={16} className="text-navy" />
+              <span className="hidden sm:inline text-xs font-bold tracking-wide uppercase">
+                Super Admin
+              </span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close menu"
+              className="p-2 text-cream hover:text-saffron transition-colors cursor-pointer"
+            >
+              <X size={26} />
+            </button>
+          </div>
         </div>
 
         <ul className="flex flex-col gap-5 overflow-y-auto">
