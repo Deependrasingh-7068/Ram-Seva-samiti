@@ -5,7 +5,7 @@ import {
   Plus, Trash2, Edit2, HeartHandshake, Calendar, X, MapPin, Clock, 
   Loader2, Image as ImageIcon, Flame, Utensils, Droplet, Sprout, 
   BookOpen, HandHeart, Heart, Sparkles, ImagePlus, Users, 
-  BellRing, UserCheck, ShieldCheck, CheckCircle2, XCircle, Search, Lock
+  BellRing, UserCheck, ShieldCheck, CheckCircle2, XCircle, Search, Lock, Unlock
 } from 'lucide-react';
 
 const SEVA_ICONS = [
@@ -21,7 +21,6 @@ const SEVA_ICONS = [
 
 const GALLERY_CATEGORIES = ['ALL', 'FESTIVAL', 'SEVA', 'TEMPLE', 'COMMUNITY'];
 
-// Allowed multiple-person member roles with Hindi mapping
 const ALLOWED_MEMBER_ROLES = [
   { english: 'Vice President', hindi: 'उपाध्यक्ष' },
   { english: 'Secretary', hindi: 'सचिव' },
@@ -47,9 +46,8 @@ function formatDescription(desc) {
   if (!desc || typeof desc !== 'string') return '';
   const trimmed = desc.trim().replace(/^["“']+|["”']+$/g, '');
   return `“${trimmed}”`;
-};
+}
 
-// Helper to mask Aadhar (show only last 6 digits)
 const getMaskedAadhar = (val) => {
   if (!val) return '******000000';
   const clean = val.toString().replace(/\D/g, '');
@@ -128,7 +126,6 @@ export default function AdminDashboard() {
   const [memberBio, setMemberBio] = useState('');
   const [memberImage, setMemberImage] = useState('');
   
-  // Member Aadhar Security / Eye Toggle / Unlock States
   const [showCreateAadhar, setShowCreateAadhar] = useState(false);
   const [enteredDobCheck, setEnteredDobCheck] = useState('');
   const [isAadharUnlocked, setIsAadharUnlocked] = useState(false);
@@ -152,7 +149,6 @@ export default function AdminDashboard() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  // ================= FETCH VOLUNTEERS =================
   const fetchVolunteers = async () => {
     try {
       setVolunteersLoading(true);
@@ -183,11 +179,11 @@ export default function AdminDashboard() {
   }, []);
 
   const handleUpdateVolunteerStatus = async (id, status) => {
-  if (!loggedAdminName) {
-    alert('Aapki admin identity load nahi ho payi. Page refresh karke dobara try karein.');
-    return;
-  }
-  try {
+    if (!loggedAdminName) {
+      alert('Aapki admin identity load nahi ho payi. Page refresh karke dobara try karein.');
+      return;
+    }
+    try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/status/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -264,34 +260,31 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleImageUpload = async (e, setImageCallback) => {
+  const handleImageUpload = async (e, setImageCallback, customFolder = 'ram-sewa-samiti') => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const CLOUD_NAME = 'dp2fkeyok';
-    const UPLOAD_PRESET = 'ShreeRamSewaSamiti-Images';
-
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('image', file);
+    formData.append('folder', customFolder);
 
     setUploading(true);
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        `${import.meta.env.VITE_API_URL}/api/upload`,
         {
           method: 'POST',
           body: formData,
         }
       );
       const data = await response.json();
-      if (data.secure_url) {
-        setImageCallback(data.secure_url);
+      if (data.success && data.url) {
+        setImageCallback(data.url);
       } else {
-        throw new Error(data.error?.message || 'Upload failed');
+        throw new Error(data.message || 'Upload failed');
       }
     } catch (error) {
-      console.error('Cloudinary Upload Error:', error);
+      console.error('Backend Upload Error:', error);
       alert(`Image upload failed: ${error.message}`);
     } finally {
       setUploading(false);
@@ -503,14 +496,12 @@ export default function AdminDashboard() {
       const finalRoleEnglish = memberRoleEnglish || 'Member';
       const finalRoleHindi = memberRoleHindi || 'सदस्य';
 
-      // Security validation: Prevent reserved roles from being submitted from Members Management
       const reservedRoles = ['Patron', 'President', 'General Secretary', 'Treasurer'];
       if (reservedRoles.includes(finalRoleEnglish)) {
         alert('This designation is reserved for Committee Leadership and cannot be assigned from Members Management.');
         return;
       }
 
-      // Required fields check for Aadhar & DOB
       if (!memberAadhar || !memberDob) {
         alert('Aadhar Number and Date of Birth (DOB) are required.');
         return;
@@ -657,15 +648,12 @@ export default function AdminDashboard() {
       {/* DASHBOARD WELCOME SECTION WITH RAM MANDIR BACKGROUND */}
       {(activeSection === 'dashboard' || activeSection === '') && (
         <div className="relative w-full h-[90vh] rounded-3xl overflow-hidden border border-gold/25 shadow-2xl flex items-center justify-center p-6 text-center">
-          {/* Background Ram Mandir Image with Opacity/Fade */}
           <div 
             className="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity scale-105 transition-transform duration-1000"
             style={{ backgroundImage: `url('https://res.cloudinary.com/dp2fkeyok/image/upload/v1787346508/nddusvge44uofhrls8qs.png')` }}
           />
-          {/* Gradient Overlay for Fade Effect */}
           <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/70 to-transparent" />
 
-          {/* Content Box */}
           <div className="relative z-10 space-y-4 max-w-2xl mx-auto">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-saffron/15 border border-saffron/40 flex items-center justify-center text-saffron shadow-inner animate-pulse">
               <ShieldCheck size={36} />
@@ -750,7 +738,6 @@ export default function AdminDashboard() {
                       )}
                     </div>
 
-                    {/* Footer without wrap text */}
                     <div className="px-4 py-2.5 border-t border-gold/10 bg-navy/40 flex items-center justify-between text-[11px] text-cream/70 whitespace-nowrap">
                       <span className="truncate">श्री राम सेवा समिति</span>
                       <span className="font-semibold text-saffron truncate ml-2">
@@ -812,9 +799,9 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gold/80 ml-1">Card Image (Cloudinary)</label>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setSevaImage)} className="w-full text-xs text-cream/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy hover:file:bg-saffron-deep cursor-pointer" />
-                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Uploading to Cloudinary...</p>}
+                    <label className="text-xs font-medium text-gold/80 ml-1">Card Image (Optimized Backend Upload)</label>
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setSevaImage, 'ram_sewa_samiti/seva')} className="w-full text-xs text-cream/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy hover:file:bg-saffron-deep cursor-pointer" />
+                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Optimizing & Uploading...</p>}
                     {sevaImage && (
                       <div className="mt-2 flex items-center gap-2">
                         <img src={sevaImage} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-gold/20" />
@@ -964,14 +951,14 @@ export default function AdminDashboard() {
                     <input type="text" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="श्री राम मंदिर प्रांगण" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron" required />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gold/80 ml-1">Event Banner (Cloudinary)</label>
+                    <label className="text-xs font-medium text-gold/80 ml-1">Event Banner (Optimized Backend Upload)</label>
                     <input 
                       type="file" 
                       accept="image/*" 
-                      onChange={(e) => handleImageUpload(e, setEventImage)} 
+                      onChange={(e) => handleImageUpload(e, setEventImage, 'ram_sewa_samiti/events')} 
                       className="w-full text-xs text-cream/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy hover:file:bg-saffron-deep cursor-pointer" 
                     />
-                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Uploading to Cloudinary...</p>}
+                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Optimizing & Uploading...</p>}
                     {eventImage && (
                       <div className="mt-2 flex items-center gap-2">
                         <img src={eventImage} alt="Preview" className="w-12 h-12 rounded-lg object-cover border border-gold/20" />
@@ -1142,15 +1129,15 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gold/80 ml-1">Upload Photo (Cloudinary)</label>
+                    <label className="text-xs font-medium text-gold/80 ml-1">Upload Photo (Optimized Backend Upload)</label>
                     <input 
                       type="file" 
                       accept="image/*" 
-                      onChange={(e) => handleImageUpload(e, setGalleryImage)} 
+                      onChange={(e) => handleImageUpload(e, setGalleryImage, 'ram_sewa_samiti/gallery')} 
                       className="w-full text-xs text-cream/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy hover:file:bg-saffron-deep cursor-pointer" 
                       required={!galleryImage}
                     />
-                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Uploading to Cloudinary...</p>}
+                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Optimizing & Uploading...</p>}
                     {galleryImage && (
                       <div className="mt-2 relative w-full h-36 rounded-xl overflow-hidden border border-gold/20">
                         <img src={galleryImage} alt="Preview" className="w-full h-full object-cover" />
@@ -1307,7 +1294,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Controlled Role / Designation Dropdown without reserved leadership roles */}
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-gold/80 ml-1">Role / Designation *</label>
                     <select
@@ -1348,7 +1334,6 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Date of Birth (DOB) */}
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-gold/80 ml-1">Date of Birth (DOB) *</label>
                       <input 
@@ -1360,7 +1345,6 @@ export default function AdminDashboard() {
                       />
                     </div>
 
-                    {/* Aadhar Number with Create Eye Toggle / Edit Lock Logic */}
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-gold/80 ml-1">Aadhar Number *</label>
                       {editingMember ? (
@@ -1432,14 +1416,14 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gold/80 ml-1">Member Photo (Cloudinary - Optional)</label>
+                    <label className="text-xs font-medium text-gold/80 ml-1">Member Photo (Optimized Backend Upload)</label>
                     <input 
                       type="file" 
                       accept="image/*" 
-                      onChange={(e) => handleImageUpload(e, setMemberImage)} 
+                      onChange={(e) => handleImageUpload(e, setMemberImage, 'ram_sewa_samiti/members')} 
                       className="w-full text-xs text-cream/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy hover:file:bg-saffron-deep cursor-pointer" 
                     />
-                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Uploading to Cloudinary...</p>}
+                    {uploading && <p className="text-[10px] text-saffron flex items-center gap-1 mt-1"><Loader2 size={12} className="animate-spin" /> Optimizing & Uploading...</p>}
                     {memberImage && (
                       <div className="mt-2 flex items-center gap-3">
                         <img src={memberImage} alt="Preview" className="w-12 h-12 rounded-full object-cover border border-gold/30" />
@@ -1699,7 +1683,7 @@ export default function AdminDashboard() {
               </div>
             ) : filteredVolunteers.length > 0 ? (
               filteredVolunteers.map((vol) => {
-                const isFrozen = vol.isFrozen; // SuperAdmin freeze flag
+                const isFrozen = vol.isFrozen;
 
                 const statusColor = 
                   isFrozen ? 'bg-red-500/20 text-red-400 border-red-500/40' :
@@ -1786,13 +1770,13 @@ export default function AdminDashboard() {
                         <div className="px-4 py-2 rounded-xl bg-navy border border-gold/20 text-xs font-semibold text-gold flex items-center gap-2 shadow-inner">
                           <UserCheck size={14} className="text-saffron" />
                           <span>
- {vol.status === 'ACCEPTED' ? 'Approved By:' : 'Rejected By:'}{' '}
-  <b className="text-cream">
-    {vol.approvedBy && (vol.approvedBy.trim().toLowerCase() === loggedAdminName.toLowerCase() || vol.approvedBy.trim().toLowerCase() === loggedAdminEmail)
-      ? 'YOU' 
-      : (vol.approvedBy || 'Unknown Admin')}
-  </b>
-</span>
+                            {vol.status === 'ACCEPTED' ? 'Approved By:' : 'Rejected By:'}{' '}
+                            <b className="text-cream">
+                              {vol.approvedBy && (vol.approvedBy.trim().toLowerCase() === loggedAdminName.toLowerCase() || vol.approvedBy.trim().toLowerCase() === loggedAdminEmail)
+                                ? 'YOU' 
+                                : (vol.approvedBy || 'Unknown Admin')}
+                            </b>
+                          </span>
                         </div>
                       ) : (
                         <>
@@ -1873,7 +1857,6 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {/* SuperAdmin Freeze / Unfreeze Toggle for Volunteer */}
                     <button
                       type="button"
                       onClick={async () => {
@@ -1906,7 +1889,6 @@ export default function AdminDashboard() {
                       <span>{isFrozen ? 'Frozen' : 'Active'}</span>
                     </button>
 
-                    {/* Permanent Delete Button */}
                     <button
                       type="button"
                       onClick={() => setDeleteConfirmVolunteer(vol)}

@@ -32,30 +32,29 @@ export default function Volunteer() {
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState('');
 
-  // Cloudinary Upload
+  // UPDATED IMAGE UPLOAD VIA SECURE BACKEND /api/volunteers/upload-photo ENDPOINT WITH SHARP COMPRESSION
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const CLOUD_NAME = 'dp2fkeyok';
-    const UPLOAD_PRESET = 'ShreeRamSewaSamiti-Images';
-
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('photo', file);
 
     setUploading(true);
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/upload-photo`, {
         method: 'POST',
         body: formData,
       });
       const data = await res.json();
-      if (data.secure_url) {
-        setPhoto(data.secure_url);
+      if (data.success && data.url) {
+        setPhoto(data.url);
+      } else {
+        throw new Error(data.message || 'Upload failed');
       }
-    } catch {
-      alert('Photo upload failed. Please try again.');
+    } catch (error) {
+      console.error('Backend Upload Error:', error);
+      alert(`Photo upload failed: ${error.message}`);
     } finally {
       setUploading(false);
     }
@@ -342,7 +341,6 @@ export default function Volunteer() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {/* Mandatory Unique Aadhaar Input */}
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-gold/80 ml-1 flex items-center gap-1">
                         <CreditCard size={12} className="text-saffron" /> आधार नंबर (12 Digits) *
@@ -421,7 +419,7 @@ export default function Volunteer() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-gold/80 ml-1">पासपोर्ट साइज फोटो (Cloudinary) *</label>
+                    <label className="text-xs font-medium text-gold/80 ml-1">पासपोर्ट साइज फोटो (Optimized Backend Upload) *</label>
                     <input
                       type="file"
                       accept="image/*"
@@ -431,13 +429,13 @@ export default function Volunteer() {
                     />
                     {uploading && (
                       <p className="text-[10px] text-saffron flex items-center gap-1 mt-1">
-                        <Loader2 size={12} className="animate-spin" /> Uploading photo...
+                        <Loader2 size={12} className="animate-spin" /> Optimizing & uploading photo...
                       </p>
                     )}
                     {photo && (
                       <div className="mt-2 flex items-center gap-3">
                         <img src={photo} alt="Preview" className="w-12 h-14 rounded-lg object-cover border border-gold/40 shadow-md" />
-                        <span className="text-xs text-emerald-400 font-medium">Photo Attached Successfully</span>
+                        <span className="text-xs text-emerald-400 font-medium">Photo Optimized & Attached Successfully</span>
                       </div>
                     )}
                   </div>
@@ -562,4 +560,4 @@ export default function Volunteer() {
       </div>
     </div>
   );
-}``
+}

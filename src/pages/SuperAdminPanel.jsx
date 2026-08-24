@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 // Helper: Empty string ko 'NA' format mein normalize karega
 function sanitizeValue(val) {
   if (!val || val.trim().length === 0) return 'NA';
@@ -21,7 +22,7 @@ export default function SuperAdminPanel() {
   const [activeTab, setActiveTab] = useState('admins');
 
   // Super Admin logout — session clear karke login page pe bhej dega
-     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const confirmSuperAdminLogout = () => {
     localStorage.removeItem('superAdminAuth');
@@ -84,22 +85,31 @@ export default function SuperAdminPanel() {
     fetchVolunteers();
   }, []);
 
+  // UPDATED IMAGE UPLOAD VIA SECURE BACKEND /api/upload ENDPOINT WITH SHARP COMPRESSION
   const handleImageUpload = async (e, setImageCallback, setLoadingCallback) => {
     const file = e.target.files[0];
     if (!file) return;
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'ShreeRamSewaSamiti-Images');
+    formData.append('image', file);
+    formData.append('folder', 'ram_sewa_samiti/admins');
     
     if (setLoadingCallback) setLoadingCallback(true);
     else setUploading(true);
 
     try {
-      const response = await fetch(`https://api.cloudinary.com/v1_1/dp2fkeyok/image/upload`, { method: 'POST', body: formData });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { 
+        method: 'POST', 
+        body: formData 
+      });
       const data = await response.json();
-      if (data.secure_url) setImageCallback(data.secure_url);
+      if (data.success && data.url) {
+        setImageCallback(data.url);
+      } else {
+        throw new Error(data.message || 'Upload failed');
+      }
     } catch (error) { 
-      alert('Upload failed'); 
+      console.error('Backend Upload Error:', error);
+      alert(`Image upload failed: ${error.message}`); 
     } finally { 
       if (setLoadingCallback) setLoadingCallback(false);
       else setUploading(false); 
@@ -341,7 +351,7 @@ export default function SuperAdminPanel() {
 
   return (
     <div className="min-h-screen bg-navy pt-28 pb-20 px-6 max-w-[95rem] mx-auto text-cream">
-           <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 mb-8 flex items-start justify-between gap-4 flex-wrap">
+       <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-3xl text-saffron flex items-center gap-2">
             <Shield size={28} /> Super Admin Control Center
@@ -349,7 +359,7 @@ export default function SuperAdminPanel() {
           <p className="text-sm text-cream/60 mt-1">Manage all samiti admins, credentials, volunteers and donations in Database.</p>
         </div>
 
-                <button
+        <button
           type="button"
           onClick={() => setShowLogoutConfirm(true)}
           title="Logout"
@@ -441,11 +451,11 @@ export default function SuperAdminPanel() {
                   )}
                 </div>
 
-                {uploading && <p className="text-xs text-saffron flex items-center gap-1"><Loader2 size={14} className="animate-spin" /> Uploading image...</p>}
+                {uploading && <p className="text-xs text-saffron flex items-center gap-1"><Loader2 size={14} className="animate-spin" /> Uploading & optimizing image...</p>}
                 {adminPhoto && (
                   <div className="flex items-center gap-3 pt-1">
                     <img src={adminPhoto} alt="Preview" className="w-10 h-10 rounded-full object-cover border border-saffron" />
-                    <span className="text-xs text-saffron">Photo attached</span>
+                    <span className="text-xs text-saffron">Photo attached & optimized</span>
                   </div>
                 )}
 
@@ -555,52 +565,53 @@ export default function SuperAdminPanel() {
                   filteredVolunteers.map((vol) => {
                     const isVolFrozen = vol.isFrozen;
                     return (
-                                        <div key={vol._id || vol.volunteerId} className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-md ${isVolFrozen ? 'bg-red-950/20 border-red-500/30' : 'bg-navy border-gold/15'}`}>
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-navy-2 border border-gold/30 shrink-0 relative">
-                          {vol.photo ? <img src={vol.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-saffron font-bold">👤</div>}
-                          {isVolFrozen && <span className="absolute inset-0 bg-red-600/50 flex items-center justify-center text-[8px] text-white font-bold">FROZEN</span>}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-bold text-cream font-hindi truncate">{vol.nameHindi}</h4>
-                            <span className="text-[10px] font-mono text-saffron bg-saffron/10 px-2 py-0.5 rounded">{vol.volunteerId}</span>
-                            {vol.approvedBy && (
-                              <span className="text-[10px] text-gold/80 bg-gold/10 px-2 py-0.5 rounded border border-gold/20">
-                                Approved By: {vol.approvedBy}
-                              </span>
-                            )}
-                            {isVolFrozen && (
-                              <span className="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 font-semibold">
-                                FROZEN
-                              </span>
-                            )}
+                      <div key={vol._id || vol.volunteerId} className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-md ${isVolFrozen ? 'bg-red-950/20 border-red-500/30' : 'bg-navy border-gold/15'}`}>
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="w-12 h-12 rounded-full overflow-hidden bg-navy-2 border border-gold/30 shrink-0 relative">
+                            {vol.photo ? <img src={vol.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-saffron font-bold">👤</div>}
+                            {isVolFrozen && <span className="absolute inset-0 bg-red-600/50 flex items-center justify-center text-[8px] text-white font-bold">FROZEN</span>}
                           </div>
-                          <p className="text-xs text-cream/50 truncate mt-0.5">Phone: {vol.phone} | Address: {vol.address}</p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm font-bold text-cream font-hindi truncate">{vol.nameHindi}</h4>
+                              <span className="text-[10px] font-mono text-saffron bg-saffron/10 px-2 py-0.5 rounded">{vol.volunteerId}</span>
+                              {vol.approvedBy && (
+                                <span className="text-[10px] text-gold/80 bg-gold/10 px-2 py-0.5 rounded border border-gold/20">
+                                  Approved By: {vol.approvedBy}
+                                </span>
+                              )}
+                              {isVolFrozen && (
+                                <span className="text-[10px] text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 font-semibold">
+                                  FROZEN
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-cream/50 truncate mt-0.5">Phone: {vol.phone} | Address: {vol.address}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto overflow-x-auto pt-3 sm:pt-0 border-t border-gold/10 sm:border-0">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFreezeVolunteer(vol)}
+                            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${
+                              isVolFrozen
+                                ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white'
+                                : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white'
+                            }`}
+                            title={isVolFrozen ? 'Click to Unfreeze Volunteer' : 'Click to Freeze Volunteer'}
+                          >
+                            {isVolFrozen ? <Lock size={13} /> : <Unlock size={13} />}
+                            <span>{isVolFrozen ? 'Frozen' : 'Active'}</span>
+                          </button>
+                          <button onClick={() => openEditVolunteerModal(vol)} className="px-4 py-2 rounded-xl bg-blue-500/15 text-blue-400 hover:bg-blue-500 hover:text-white text-xs font-semibold cursor-pointer">
+                            Edit
+                          </button>
+                          <button onClick={() => handleDeleteVolunteer(vol)} className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-white cursor-pointer" title="Delete Volunteer">
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
-                                            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto overflow-x-auto pt-3 sm:pt-0 border-t border-gold/10 sm:border-0">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleFreezeVolunteer(vol)}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${
-                            isVolFrozen
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white'
-                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white'
-                          }`}
-                          title={isVolFrozen ? 'Click to Unfreeze Volunteer' : 'Click to Freeze Volunteer'}
-                        >
-                          {isVolFrozen ? <Lock size={13} /> : <Unlock size={13} />}
-                          <span>{isVolFrozen ? 'Frozen' : 'Active'}</span>
-                        </button>
-                        <button onClick={() => openEditVolunteerModal(vol)} className="px-4 py-2 rounded-xl bg-blue-500/15 text-blue-400 hover:bg-blue-500 hover:text-white text-xs font-semibold cursor-pointer">
-                          Edit
-                        </button>
-                        <button onClick={() => handleDeleteVolunteer(vol)} className="p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-white cursor-pointer" title="Delete Volunteer">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
                     );
                   })
                 ) : (
@@ -642,7 +653,8 @@ export default function SuperAdminPanel() {
           )}
         </div>
       </div>
-                {/* SUPER ADMIN LOGOUT CONFIRMATION MODAL */}
+
+      {/* SUPER ADMIN LOGOUT CONFIRMATION MODAL */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/80 backdrop-blur-sm px-4">
           <div className="relative bg-navy-2 border border-gold/25 p-8 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-5">
@@ -721,7 +733,7 @@ export default function SuperAdminPanel() {
                         }
                       }}
                       className="text-saffron hover:text-gold shrink-0 cursor-pointer p-1"
-                      title="Reveal Full Aadhaar"
+                      title="Reveal Full ID"
                     >
                       <Lock size={15} />
                     </button>
@@ -750,7 +762,7 @@ export default function SuperAdminPanel() {
                   <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setEditAdminPhoto, setEditUploading)} className="w-full text-xs text-cream/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-saffron file:text-navy cursor-pointer bg-navy border rounded-xl" />
                   {editAdminPhoto && <button type="button" onClick={() => setEditAdminPhoto('')} className="px-3 py-2 bg-red-500/20 text-red-400 text-xs rounded-xl">Remove</button>}
                 </div>
-                {editUploading && <p className="text-xs text-saffron flex items-center gap-1 mt-1"><Loader2 size={14} className="animate-spin" /> Uploading image...</p>}
+                {editUploading && <p className="text-xs text-saffron flex items-center gap-1 mt-1"><Loader2 size={14} className="animate-spin" /> Uploading & optimizing image...</p>}
                 {editAdminPhoto && <img src={editAdminPhoto} alt="Preview" className="w-12 h-12 rounded-full object-cover border border-saffron mt-2" />}
               </div>
               <div className="flex gap-3 pt-2">
@@ -774,7 +786,7 @@ export default function SuperAdminPanel() {
                   <input type="text" value={editingVolunteer.volunteerId || ''} disabled className="w-full bg-transparent text-cream/60 font-mono text-xs outline-none cursor-not-allowed" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase text-gold/60 block">Aadhaar Number (Frozen)</label>
+                  <label className="text-[10px] uppercase text-gold/60 block">ID Reference (Frozen)</label>
                   <input type="text" value={`******${String(editingVolunteer.aadhaarNumber || '').slice(-6)}`} disabled className="w-full bg-transparent text-cream/60 font-mono text-xs outline-none cursor-not-allowed" />
                 </div>
               </div>

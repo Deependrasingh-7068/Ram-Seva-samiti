@@ -1,40 +1,79 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
+const upload = require('../middleware/imageUpload');
+const { optimizeImage } = require('../utils/imageOptimizer');
 
-// Cloudinary configuration
+// Cloudinary configuration (Securely using .env credentials)[cite: 1]
 cloudinary.config({
-  cloud_name: 'dp2fkeyok',
-  api_key: '545692692784664',
-  api_secret: 'ojOOXWKV0B3fyKZ1m5Ey-Aa3OXA'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Setup multer storage with cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'ram-sewa-samiti', // Cloudinary par folder ka naam
-    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-  },
-});
-
-const upload = multer({ storage: storage });
-
-// Upload Endpoint
-router.post('/upload', upload.single('image'), (req, res) => {
+// Generic Upload Endpoint with Sharp Optimization & Secure Cloudinary Stream
+router.post('/upload', upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ success: false, message: 'No file uploaded or file buffer is missing' });
     }
-    // Cloudinary file ka secure URL return karega
-    res.status(200).json({
+
+    // Step 1: Compress and optimize image using shared Sharp utility
+    let optimizedBuffer;
+    try {
+      optimizedBuffer = await optimizeImage(req.file.buffer);
+    } catch (sharpError) {
+      return res.status(400).json({ 
+        success: false, 
+        message: sharpError.message || 'Compression failure occurred during image processing.' 
+      });
+    }
+
+    // Step 2: Stream upload optimized image directly to Cloudinary
+    const uploadToCloudinary = (buffer) => {
+      return new Promise((resolve, reject) => {
+        const folderName = req.body.folder || 'ram-sewa-samiti'; // Optional custom folder support
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: folderName,
+            resource_type: 'image',
+            format: 'webp',
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(buffer);
+      });
+    };
+
+    let cloudinaryResult;
+    try {
+      cloudinaryResult = await uploadToCloudinary(optimizedBuffer);
+    } catch (cloudError) {
+      return res.status(502).json({ 
+        success: false, 
+        message: 'Cloudinary upload failure. Please try again later.',
+        error: cloudError.message 
+      });
+    }
+
+    // Step 3: Return Cloudinary secure URL and public ID[cite: 1]
+    return res.status(200).json({
       success: true,
-      url: req.file.path,
+      message: 'Image successfully optimized and uploaded',
+      url: cloudinaryResult.secure_url,
+      publicId: cloudinaryResult.public_id,
     });
+
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Upload Endpoint Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error during upload.',
+      error: error.message 
+    });
   }
 });
 

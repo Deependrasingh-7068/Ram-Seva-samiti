@@ -22,16 +22,16 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // Max 10MB limit before compression
   fileFilter: (req, file, cb) => {
-    if (file.mimetype && file.mimetype.startsWith('image/')) {
+    if (file.mimetype && (file.mimetype.startsWith('image/') || file.mimetype === 'image/avif')) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPG, JPEG, PNG, and WebP images are allowed.'), false);
+      cb(new Error('Invalid file type. Only JPG, JPEG, PNG, WebP, and AVIF images are allowed.'), false);
     }
   }
 });
 
 // ==========================================
-// SHARP IMAGE COMPRESSION HELPER LOGIC
+// SHARP IMAGE COMPRESSION HELPER LOGIC (WITH AVIF SUPPORT)
 // ==========================================
 async function compressImageBuffer(buffer) {
   // Validate that uploaded file is actually a valid image
@@ -42,8 +42,8 @@ async function compressImageBuffer(buffer) {
     throw new Error('Compression failure: Uploaded file is not a valid image.');
   }
 
-  if (!metadata || !['jpeg', 'jpg', 'png', 'webp'].includes(metadata.format)) {
-    throw new Error('Invalid file type. Only JPG, JPEG, PNG, and WebP formats are accepted.');
+  if (!metadata || !['jpeg', 'jpg', 'png', 'webp', 'avif'].includes(metadata.format)) {
+    throw new Error('Invalid file type. Only JPG, JPEG, PNG, WebP, and AVIF formats are accepted.');
   }
 
   // Resize very large images to a maximum dimension of 1000x1000 pixels maintaining aspect ratio
@@ -280,17 +280,17 @@ router.put('/status/:id', async (req, res) => {
 
     const updateData = { status };
 
-if (status === 'ACCEPTED' || status === 'REJECTED') {
-  if (!adminName || !adminName.trim()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Admin identity missing. Please re-login and try again.'
-    });
-  }
-  updateData.approvedBy = adminName.trim();
-  updateData.approvedByEmail = (adminEmail || '').trim();
-  updateData.approvedAt = new Date();
-}
+    if (status === 'ACCEPTED' || status === 'REJECTED') {
+      if (!adminName || !adminName.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin identity missing. Please re-login and try again.'
+        });
+      }
+      updateData.approvedBy = adminName.trim();
+      updateData.approvedByEmail = (adminEmail || '').trim();
+      updateData.approvedAt = new Date();
+    }
 
     const updated = await Volunteer.findByIdAndUpdate(req.params.id, updateData, { new: true });
     return res.json({ success: true, volunteer: updated });
@@ -363,7 +363,7 @@ router.put('/freeze/:id', handleFreezeToggle);
 router.put('/toggle-freeze/:id', handleFreezeToggle);
 
 // =========================================================================
-// 7. NEW AUTOMATIC IMAGE OPTIMIZATION & SECURE CLOUDINARY UPLOAD ROUTE
+// 7. AUTOMATIC IMAGE OPTIMIZATION & SECURE CLOUDINARY UPLOAD ROUTE
 // =========================================================================
 router.post('/upload-photo', upload.single('photo'), async (req, res) => {
   try {
