@@ -132,16 +132,22 @@ export default function VolunteerIdCard({ volunteer }) {
   const membershipSince = volunteer.membershipSince || new Date().toLocaleDateString('en-IN');
   const dateOfIssue = volunteer.dateOfIssue || new Date().toLocaleDateString('en-IN');
   const approvedBy = volunteer.approvedBy || 'Harsh Singh';
+  const photoUrl = volunteer.photo || '';
 
+  // Updated QR Data to include complete details and photo link in a clean manner
   const qrDataText = encodeURIComponent(
     JSON.stringify({
       id: volunteerId,
       name: `${nameHindi} (${nameEnglish})`,
       role: roleHindi,
       phone: phone,
+      dob: displayDob,
+      bloodGroup: bloodGroup,
+      address: address,
+      photo: photoUrl,
       approvedBy: approvedBy,
       samiti: 'Shree Ram Sewa Samiti',
-      valid: 'VERIFIED ACTIVE VOLUNTEER',
+      status: 'VERIFIED ACTIVE VOLUNTEER',
     })
   );
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrDataText}&bgcolor=ffffff&color=000000`;
@@ -169,7 +175,6 @@ export default function VolunteerIdCard({ volunteer }) {
         backgroundColor: '#071021',
         logging: false,
         onclone: (clonedDoc) => {
-          // Lock exact line-height on cloned elements to prevent vertical text shifting during canvas generation
           const elements = clonedDoc.querySelectorAll('p, span, h2, b, div');
           elements.forEach((el) => {
             el.style.lineHeight = '1.2';
@@ -533,7 +538,6 @@ export default function VolunteerIdCard({ volunteer }) {
       {/* ===================== DOWNLOAD & PRINT ACTION BUTTONS ==================== */}
       {/* ========================================================================= */}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-        {/* ISOLATED 1-PAGE A4 PRINT BUTTON */}
         <button
           onClick={handlePrintCleanA4}
           className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#f59e0b] hover:from-[#b45309] hover:to-[#d97706] text-navy font-extrabold text-sm shadow-[0_8px_25px_rgba(245,158,11,0.4)] transition-all cursor-pointer flex items-center gap-2 active:scale-95"
@@ -542,7 +546,6 @@ export default function VolunteerIdCard({ volunteer }) {
           <span>Print Official ID Card with Terms & Conditions (1-Page A4)</span>
         </button>
 
-        {/* ULTRA-HD DOWNLOAD BUTTONS */}
         <button
           onClick={() => downloadHdCard(cardContainerRef, `SRSS-Volunteer-Card-${volunteerId}`)}
           disabled={downloading}
@@ -569,12 +572,9 @@ export default function VolunteerIdCard({ volunteer }) {
         </button>
       </div>
 
-      {/* ========================================================================= */}
-      {/* ================= HIDDEN PRINTABLE TEMPLATE (ONLY PRINTS THIS) =========== */}
-      {/* ========================================================================= */}
+      {/* ================= HIDDEN PRINTABLE TEMPLATE ================= */}
       <div style={{ display: 'none' }}>
         <div ref={printableSheetRef}>
-          {/* Header */}
           <div className="text-center">
             <div className="heading-main">श्री राम सेवा समिति</div>
             <div className="subheading">SHREE RAM SEWA SAMITI • UTTAR PRADESH</div>
@@ -582,9 +582,7 @@ export default function VolunteerIdCard({ volunteer }) {
           </div>
           <div className="divider"></div>
 
-          {/* Cards Grid */}
           <div className="grid-2">
-            {/* Front Box */}
             <div className="border-box">
               <div className="card-title">पहचान पत्र (FRONT)</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -603,7 +601,6 @@ export default function VolunteerIdCard({ volunteer }) {
               </div>
             </div>
 
-            {/* Back Box */}
             <div className="border-box">
               <div className="card-title">विवरण (BACK)</div>
               <div className="field-row"><b>सदस्यता संख्या:</b> {volunteerId}</div>
@@ -619,7 +616,6 @@ export default function VolunteerIdCard({ volunteer }) {
             </div>
           </div>
 
-          {/* Letter of Appreciation */}
           <div className="note-box">
             <div className="note-title">समिति परिवार से जुड़ने पर आभार संदेश (Letter of Appreciation):</div>
             <div className="note-text text-justify">
@@ -627,7 +623,6 @@ export default function VolunteerIdCard({ volunteer }) {
             </div>
           </div>
 
-          {/* Terms & Conditions */}
           <div className="terms-title">स्वयंसेवक नियम, कर्तव्य एवं सेवा शर्तें (Terms & Conditions):</div>
           <ol className="terms-list text-justify">
             <li><b>पहचान पत्र की सुरक्षा:</b> यह पहचान पत्र श्री राम सेवा समिति की संपत्ति है। इसका उपयोग केवल समिति के आधिकारिक सेवा कार्यों एवं आयोजनों के दौरान ही किया जा सकता है।</li>
@@ -637,7 +632,6 @@ export default function VolunteerIdCard({ volunteer }) {
             <li><b>पहचान पत्र गुम होने पर:</b> यदि पहचान पत्र खो जाता है, तो तुरंत समिति के हेल्पलाइन नंबर <span className="font-mono font-bold">+91 70681 80049</span> पर सूचित करें।</li>
           </ol>
 
-          {/* Signatures */}
           <div className="sign-row">
             <div>
               <div><b>{nameHindi} ({volunteerId})</b></div>

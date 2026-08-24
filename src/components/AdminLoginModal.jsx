@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Calendar, CreditCard, AlertCircle, X, KeyRound } from 'lucide-react';
+// import { ShieldCheck, Calendar, CreditCard, AlertCircle, X, KeyRound } from 'lucide-react';
+import { ShieldCheck, Calendar, CreditCard, AlertCircle, X } from 'lucide-react';
 
 export default function AdminLoginModal({ isOpen, onClose }) {
   const [aadhaar, setAadhaar] = useState('');
@@ -12,22 +13,22 @@ export default function AdminLoginModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   // Backend se demo admin credentials fetch karne ke liye
-  const fillDemoAdmin = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/demo-admin`);
-      const data = await response.json();
+  // const fillDemoAdmin = async () => {
+  //   try {
+  //     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/demo-admin`);
+  //     const data = await response.json();
       
-      if (data.success && data.admin) {
-        setAadhaar(data.admin.aadhaar || '');
-        setDob(data.admin.dob || '');
-      } else {
-        alert('No admin found in database yet. Please create one via SuperAdmin first!');
-      }
-    } catch (err) {
-      console.error('Error fetching demo admin:', err);
-      alert('Could not fetch credentials from server.');
-    }
-  };
+  //     if (data.success && data.admin) {
+  //       setAadhaar(data.admin.aadhaar || '');
+  //       setDob(data.admin.dob || '');
+  //     } else {
+  //       alert('No admin found in database yet. Please create one via SuperAdmin first!');
+  //     }
+  //   } catch (err) {
+  //     console.error('Error fetching demo admin:', err);
+  //     alert('Could not fetch credentials from server.');
+  //   }
+  // };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -69,7 +70,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
         </button>
 
         {/* Quick Demo Fill Button */}
-        <div className="flex items-center justify-between bg-navy p-2.5 rounded-xl border border-gold/15 text-xs">
+        {/* <div className="flex items-center justify-between bg-navy p-2.5 rounded-xl border border-gold/15 text-xs">
           <span className="flex items-center gap-1.5 text-saffron font-medium"><KeyRound size={14} /> Quick Demo Fill</span>
           <button 
             type="button" 
@@ -78,7 +79,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           >
             Fill Credentials
           </button>
-        </div>
+        </div> */}
 
         {/* Header */}
         <div className="text-center space-y-2">

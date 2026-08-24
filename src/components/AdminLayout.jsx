@@ -23,6 +23,7 @@ const ADMIN_SECTIONS = [
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [pendingVolunteerCount, setPendingVolunteerCount] = useState(0);
   const [adminInfo, setAdminInfo] = useState(() => {
     return JSON.parse(localStorage.getItem('adminInfo') || '{}');
   });
@@ -71,6 +72,27 @@ export default function AdminLayout() {
       clearInterval(interval);
     };
   }, [adminInfo]);
+
+    // Pending Volunteer Requests count — sidebar badge ke liye
+  useEffect(() => {
+    const fetchPendingVolunteers = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/all`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.volunteers)) {
+          const pendingCount = data.volunteers.filter((v) => v.status === 'PENDING').length;
+          setPendingVolunteerCount(pendingCount);
+        }
+      } catch (err) {
+        // Network error — badge simply nahi dikhega, crash nahi hoga
+      }
+    };
+
+    fetchPendingVolunteers();
+    const interval = setInterval(fetchPendingVolunteers, 10000); // Har 10 second refresh
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogoutConfirm = () => {
     localStorage.removeItem('adminInfo');
@@ -277,7 +299,7 @@ export default function AdminLayout() {
           {ADMIN_SECTIONS.map((section) => {
             const Icon = section.icon;
             return (
-              <NavLink
+                            <NavLink
                 key={section.path}
                 to={section.path}
                 end={section.path === '/admin'}
@@ -291,7 +313,12 @@ export default function AdminLayout() {
                 }
               >
                 <Icon size={18} />
-                <span>{section.name}</span>
+                <span className="flex-1">{section.name}</span>
+                {section.name === 'Volunteer' && pendingVolunteerCount > 0 && (
+                  <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-md">
+                    {pendingVolunteerCount > 99 ? '99+' : pendingVolunteerCount}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -312,7 +339,7 @@ export default function AdminLayout() {
             {ADMIN_SECTIONS.map((section) => {
               const Icon = section.icon;
               return (
-                <NavLink
+                                <NavLink
                   key={section.path}
                   to={section.path}
                   end={section.path === '/admin'}
@@ -325,8 +352,13 @@ export default function AdminLayout() {
                   }
                 >
                   <Icon size={18} />
-                  <span>{section.name}</span>
-                </NavLink>
+                  <span className="flex-1">{section.name}</span>
+                  {section.name === 'Volunteer' && pendingVolunteerCount > 0 && (
+                    <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-md">
+                      {pendingVolunteerCount > 99 ? '99+' : pendingVolunteerCount}
+                    </span>
+                  )}
+                </NavLink>  
               );
             })}
           </nav>

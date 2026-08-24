@@ -21,7 +21,9 @@ export default function SuperAdminPanel() {
   const [activeTab, setActiveTab] = useState('admins');
 
   // Super Admin logout — session clear karke login page pe bhej dega
-  const handleSuperAdminLogout = () => {
+     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const confirmSuperAdminLogout = () => {
     localStorage.removeItem('superAdminAuth');
     navigate('/superadmin/login');
   };
@@ -347,9 +349,9 @@ export default function SuperAdminPanel() {
           <p className="text-sm text-cream/60 mt-1">Manage all samiti admins, credentials, volunteers and donations in Database.</p>
         </div>
 
-        <button
+                <button
           type="button"
-          onClick={handleSuperAdminLogout}
+          onClick={() => setShowLogoutConfirm(true)}
           title="Logout"
           aria-label="Logout"
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all cursor-pointer shrink-0"
@@ -553,7 +555,7 @@ export default function SuperAdminPanel() {
                   filteredVolunteers.map((vol) => {
                     const isVolFrozen = vol.isFrozen;
                     return (
-                    <div key={vol._id || vol.volunteerId} className={`p-4 rounded-xl border flex items-center justify-between gap-4 shadow-md ${isVolFrozen ? 'bg-red-950/20 border-red-500/30' : 'bg-navy border-gold/15'}`}>
+                                        <div key={vol._id || vol.volunteerId} className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-md ${isVolFrozen ? 'bg-red-950/20 border-red-500/30' : 'bg-navy border-gold/15'}`}>
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-navy-2 border border-gold/30 shrink-0 relative">
                           {vol.photo ? <img src={vol.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-saffron font-bold">👤</div>}
@@ -577,7 +579,7 @@ export default function SuperAdminPanel() {
                           <p className="text-xs text-cream/50 truncate mt-0.5">Phone: {vol.phone} | Address: {vol.address}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                                            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto overflow-x-auto pt-3 sm:pt-0 border-t border-gold/10 sm:border-0">
                         <button
                           type="button"
                           onClick={() => handleToggleFreezeVolunteer(vol)}
@@ -640,6 +642,37 @@ export default function SuperAdminPanel() {
           )}
         </div>
       </div>
+                {/* SUPER ADMIN LOGOUT CONFIRMATION MODAL */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/80 backdrop-blur-sm px-4">
+          <div className="relative bg-navy-2 border border-gold/25 p-8 rounded-3xl max-w-sm w-full shadow-2xl text-center space-y-5">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+              <LogOut size={26} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-xl text-cream font-display font-bold">Logout Confirm?</h3>
+              <p className="text-xs text-cream/60 mt-1.5">Kya aap sach mein Super Admin Panel se logout karna chahte hain?</p>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 px-5 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-sm font-semibold hover:border-gold/50 transition-all cursor-pointer"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={confirmSuperAdminLogout}
+                className="flex-1 px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-all cursor-pointer"
+              >
+                Yes, Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT ADMIN MODAL */}
       {editingAdmin && (
