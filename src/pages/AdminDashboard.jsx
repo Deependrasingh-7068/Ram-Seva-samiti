@@ -75,7 +75,7 @@ export default function AdminDashboard() {
   const displayMembers = myMembers;
   const displayUpdates = myUpdates;
 
-  const loggedAdminName = currentAdmin?.name || currentAdmin?.username || 'Admin';
+  const loggedAdminName = (currentAdmin?.name || currentAdmin?.username || '').trim();
   const loggedAdminEmail = (currentAdmin?.email || '').toLowerCase().trim();
   
   const isSuperAdmin = (currentAdmin?.role || '').toUpperCase() === 'SUPERADMIN' || currentAdmin?.isSuperAdmin;
@@ -183,7 +183,11 @@ export default function AdminDashboard() {
   }, []);
 
   const handleUpdateVolunteerStatus = async (id, status) => {
-    try {
+  if (!loggedAdminName) {
+    alert('Aapki admin identity load nahi ho payi. Page refresh karke dobara try karein.');
+    return;
+  }
+  try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/status/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -1782,11 +1786,13 @@ export default function AdminDashboard() {
                         <div className="px-4 py-2 rounded-xl bg-navy border border-gold/20 text-xs font-semibold text-gold flex items-center gap-2 shadow-inner">
                           <UserCheck size={14} className="text-saffron" />
                           <span>
-                            {vol.status === 'ACCEPTED' ? 'Approved By:' : 'Rejected By:'}{' '}
-                            <b className="text-cream">
-                              {isApprovedByMe ? 'YOU' : (vol.approvedBy || 'Admin')}
-                            </b>
-                          </span>
+ {vol.status === 'ACCEPTED' ? 'Approved By:' : 'Rejected By:'}{' '}
+  <b className="text-cream">
+    {vol.approvedBy && (vol.approvedBy.trim().toLowerCase() === loggedAdminName.toLowerCase() || vol.approvedBy.trim().toLowerCase() === loggedAdminEmail)
+      ? 'YOU' 
+      : (vol.approvedBy || 'Unknown Admin')}
+  </b>
+</span>
                         </div>
                       ) : (
                         <>
