@@ -36,17 +36,16 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
   };
 
   // Super Admin Click Handler: Laptop/Desktop aur Mobile dono ke liye session validate karega
-   const handleSuperAdminClick = (e) => {
-    console.log('SUPER ADMIN BUTTON CLICKED');
+     const handleSuperAdminClick = (e) => {
     e.preventDefault();
     try {
       const session = JSON.parse(localStorage.getItem('superAdminAuth') || 'null');
       const isValid = session && session.token && session.expiresAt > Date.now();
-      
+
       if (isValid) {
-        navigate('/superadmin'); // Agar valid session hai tabhi panel khulega
+        navigate('/superadmin');
       } else {
-        navigate('/superadmin/login'); // Agar session nahi hai toh seedha login page par bhej dega
+        navigate('/superadmin/login');
       }
     } catch (err) {
       navigate('/superadmin/login');
