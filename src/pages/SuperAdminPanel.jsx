@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight } from 'lucide-react';
-
+import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 // Helper: Empty string ko 'NA' format mein normalize karega
 function sanitizeValue(val) {
   if (!val || val.trim().length === 0) return 'NA';
@@ -17,6 +17,7 @@ const formatMaskedId = (idStr) => {
 };
 
 export default function SuperAdminPanel() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('admins');
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +54,12 @@ export default function SuperAdminPanel() {
   const [editUploading, setEditUploading] = useState(false);
   const [revealAadhaar, setRevealAadhaar] = useState(false);
   const [verifyDobInput, setVerifyDobInput] = useState('');
+
+ // Logout Handler Fix for Super Admin
+  const handleSuperAdminLogout = () => {
+    localStorage.removeItem('superAdminAuth'); // Correct token storage key remove karein
+    navigate('/superadmin/login'); // Super Admin login page par redirect karein
+  };
 
   const fetchAdmins = async () => {
     try {
@@ -332,11 +339,24 @@ export default function SuperAdminPanel() {
 
   return (
     <div className="min-h-screen bg-navy pt-28 pb-20 px-6 max-w-[95rem] mx-auto text-cream">
-      <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 mb-8">
-        <h1 className="font-display text-3xl text-saffron flex items-center gap-2">
-          <Shield size={28} /> Super Admin Control Center
-        </h1>
-        <p className="text-sm text-cream/60 mt-1">Manage all samiti admins, credentials, volunteers and donations in Database.</p>
+           <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-3xl text-saffron flex items-center gap-2">
+            <Shield size={28} /> Super Admin Control Center
+          </h1>
+          <p className="text-sm text-cream/60 mt-1">Manage all samiti admins, credentials, volunteers and donations in Database.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSuperAdminLogout}
+          title="Logout"
+          aria-label="Logout"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all cursor-pointer shrink-0"
+        >
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

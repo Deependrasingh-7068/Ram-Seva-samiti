@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, MessageCircle, ShieldCheck } from 'lucide-react';
+import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
+import { Menu, X, MessageCircle, ShieldCheck, Crown } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
 import NotificationBell from './NotificationBell';
 import AdminLoginModal from './AdminLoginModal';
@@ -19,6 +19,7 @@ const LINKS = [
 export default function Navbar({ menuOpen, onMenuToggle }) {
   const scrolled = useScrollNav(40);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -34,8 +35,25 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
     }
   };
 
+  // Super Admin Click Handler: Session check karega, agar logged in hai to panel pe, nahi to login page pe bhejega
+  const handleSuperAdminClick = (e) => {
+    e.preventDefault();
+    try {
+      const session = JSON.parse(localStorage.getItem('superAdminAuth') || 'null');
+      const isValid = session && session.token && session.expiresAt > Date.now();
+      
+      if (isValid) {
+        navigate('/superadmin');
+      } else {
+        navigate('/superadmin/login'); // Seedha Super Admin login page par redirect karega
+      }
+    } catch (err) {
+      navigate('/superadmin/login');
+    }
+  };
+
   // Check if the current user is viewing Admin Dashboard pages
-  const isAdminDashboard = location.pathname.startsWith('/admin');
+  const isAdminDashboard = location.pathname.startsWith('/admin') || location.pathname.startsWith('/superadmin');
 
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
@@ -89,27 +107,37 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
           <div className="flex items-center gap-2 md:gap-3">
             <NotificationBell />
 
-            {/* Join WhatsApp Button - Hide ONLY inside Admin Dashboard */}
+            {/* Join WhatsApp Button - Hide ONLY inside Admin/SuperAdmin Dashboard */}
             {!isAdminDashboard && (
               <a
                 href={whatsappGroupLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-saffron hover:bg-saffron-deep text-navy text-sm font-medium transition-colors shadow-md"
+                className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-saffron hover:bg-saffron-deep text-navy text-sm font-medium transition-colors shadow-md"
               >
                 <MessageCircle size={16} />
                 Join WhatsApp
               </a>
             )}
 
-                      {/* ADMIN BUTTON WITH GRADIENT */}
+            {/* SUPER ADMIN BUTTON — Updated with direct navigation check */}
+            <button
+              type="button"
+              onClick={handleSuperAdminClick}
+              className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full whitespace-nowrap bg-gradient-to-r from-amber-300 via-gold to-amber-500 border border-amber-200/60 text-navy shadow-[0_0_14px_rgba(200,164,94,0.4)] hover:shadow-[0_0_22px_rgba(200,164,94,0.6)] hover:scale-105 transition-all duration-300 text-xs md:text-sm font-bold cursor-pointer"
+            >
+              <Crown size={15} />
+              <span className="hidden sm:inline">Super Admin</span>
+            </button>
+
+            {/* ADMIN BUTTON WITH GRADIENT */}
             <button
               type="button"
               onClick={handleAdminClick}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-gold/20 via-saffron/20 to-gold/30 border border-gold/40 text-saffron hover:border-saffron hover:from-saffron/30 hover:to-saffron/40 hover:text-cream transition-all duration-300 text-sm font-medium shadow-md cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full bg-gradient-to-r from-gold/20 via-saffron/20 to-gold/30 border border-gold/40 text-saffron hover:border-saffron hover:from-saffron/30 hover:to-saffron/40 hover:text-cream transition-all duration-300 text-xs md:text-sm font-medium shadow-md cursor-pointer"
             >
-              <ShieldCheck size={16} />
-              Admin
+              <ShieldCheck size={15} />
+              <span className="hidden sm:inline">Admin</span>
             </button>
 
             {/* Mobile Menu Button */}

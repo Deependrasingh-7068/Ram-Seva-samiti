@@ -31,7 +31,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/AdminDashboard'; 
-import SuperAdminPanel from './pages/SuperAdminPanel';
+import SuperAdminRoutes from './routes/SuperAdminRoutes';
 
 // Admin Components
 import AdminPrivacyPolicy from './components/AdminPrivacyPolicy';
@@ -88,7 +88,7 @@ function AppShell() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
-            <Route path="/superadmin" element={<SuperAdminPanel />} />
+                      <Route path="/superadmin/*" element={<SuperAdminRoutes />} />
 
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />

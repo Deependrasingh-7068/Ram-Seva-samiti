@@ -23,7 +23,6 @@ export default function SuperAdminLogin() {
       const data = await response.json();
 
       if (data.success) {
-        // 12 ghante ki local session — token backend se signed JWT hai
         const session = { token: data.token, expiresAt: Date.now() + 12 * 60 * 60 * 1000 };
         localStorage.setItem('superAdminAuth', JSON.stringify(session));
         navigate('/superadmin');
