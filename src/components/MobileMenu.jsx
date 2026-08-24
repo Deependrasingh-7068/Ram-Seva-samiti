@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { X, MessageCircle, Crown } from 'lucide-react';
 
 const LINKS = [
@@ -16,8 +16,27 @@ const LINKS = [
 ];
 
 export default function MobileMenu({ open, onClose }) {
+  const navigate = useNavigate();
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
+
+  // Super Admin Click Handler for Mobile Menu
+  const handleSuperAdminClick = (e) => {
+    e.preventDefault();
+    onClose(); // Menu close kar dein
+    try {
+      const session = JSON.parse(localStorage.getItem('superAdminAuth') || 'null');
+      const isValid = session && session.token && session.expiresAt > Date.now();
+      
+      if (isValid) {
+        navigate('/superadmin');
+      } else {
+        navigate('/superadmin/login'); // Agar session valid nahi hai toh login page par bhej dega
+      }
+    } catch (err) {
+      navigate('/superadmin/login');
+    }
+  };
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
@@ -50,16 +69,16 @@ export default function MobileMenu({ open, onClose }) {
           open ? 'translate-x-0' : 'translate-x-6'
         }`}
       >
-                <div className="flex items-center justify-between gap-3 mb-10">
+        <div className="flex items-center justify-between gap-3 mb-10">
           <span className="font-hindi text-lg sm:text-2xl text-gold truncate min-w-0">
             श्री राम सेवा समिति
           </span>
 
           <div className="flex items-center gap-2 shrink-0">
-            {/* SuperAdmin Button — Admin se zyada premium (gold gradient + Crown icon) */}
-            <Link
-              to="/superadmin"
-              onClick={onClose}
+            {/* SuperAdmin Button — Updated with session check handler */}
+            <button
+              type="button"
+              onClick={handleSuperAdminClick}
               aria-label="Super Admin Panel"
               title="Super Admin Panel"
               className="inline-flex items-center gap-1.5 pl-2.5 pr-2.5 sm:pr-3.5 py-2 rounded-full bg-gradient-to-r from-amber-300 via-gold to-amber-500 border border-amber-200/60 text-navy shadow-[0_0_18px_rgba(200,164,94,0.45)] hover:shadow-[0_0_26px_rgba(200,164,94,0.65)] active:scale-95 transition-all duration-300 cursor-pointer"
@@ -68,7 +87,7 @@ export default function MobileMenu({ open, onClose }) {
               <span className="hidden sm:inline text-xs font-bold tracking-wide uppercase">
                 Super Admin
               </span>
-            </Link>
+            </button>
 
             <button
               type="button"

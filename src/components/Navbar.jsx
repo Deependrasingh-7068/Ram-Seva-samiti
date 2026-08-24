@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, MessageCircle, ShieldCheck, Crown } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
 import NotificationBell from './NotificationBell';
@@ -35,17 +35,18 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
     }
   };
 
-  // Super Admin Click Handler: Session check karega, agar logged in hai to panel pe, nahi to login page pe bhejega
-  const handleSuperAdminClick = (e) => {
+  // Super Admin Click Handler: Laptop/Desktop aur Mobile dono ke liye session validate karega
+   const handleSuperAdminClick = (e) => {
+    console.log('SUPER ADMIN BUTTON CLICKED');
     e.preventDefault();
     try {
       const session = JSON.parse(localStorage.getItem('superAdminAuth') || 'null');
       const isValid = session && session.token && session.expiresAt > Date.now();
       
       if (isValid) {
-        navigate('/superadmin');
+        navigate('/superadmin'); // Agar valid session hai tabhi panel khulega
       } else {
-        navigate('/superadmin/login'); // Seedha Super Admin login page par redirect karega
+        navigate('/superadmin/login'); // Agar session nahi hai toh seedha login page par bhej dega
       }
     } catch (err) {
       navigate('/superadmin/login');
@@ -120,7 +121,7 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
               </a>
             )}
 
-            {/* SUPER ADMIN BUTTON — Updated with direct navigation check */}
+            {/* SUPER ADMIN BUTTON — Updated with strict session check */}
             <button
               type="button"
               onClick={handleSuperAdminClick}

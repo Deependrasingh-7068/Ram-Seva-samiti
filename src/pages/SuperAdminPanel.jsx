@@ -19,6 +19,12 @@ const formatMaskedId = (idStr) => {
 export default function SuperAdminPanel() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('admins');
+
+  // Super Admin logout — session clear karke login page pe bhej dega
+  const handleSuperAdminLogout = () => {
+    localStorage.removeItem('superAdminAuth');
+    navigate('/superadmin/login');
+  };
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,12 +60,6 @@ export default function SuperAdminPanel() {
   const [editUploading, setEditUploading] = useState(false);
   const [revealAadhaar, setRevealAadhaar] = useState(false);
   const [verifyDobInput, setVerifyDobInput] = useState('');
-
- // Logout Handler Fix for Super Admin
-  const handleSuperAdminLogout = () => {
-    localStorage.removeItem('superAdminAuth'); // Correct token storage key remove karein
-    navigate('/superadmin/login'); // Super Admin login page par redirect karein
-  };
 
   const fetchAdmins = async () => {
     try {
