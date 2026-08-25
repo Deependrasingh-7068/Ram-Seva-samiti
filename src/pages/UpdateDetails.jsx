@@ -3,6 +3,7 @@ import { ArrowLeft, Calendar, UserCheck, BellRing } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import initialUpdates from '../data/updates';
 import NotFound from './NotFound';
+import OBBadge from '../components/OBBadge';
 
 function formatDate(iso) {
   if (!iso) return '';
@@ -64,9 +65,7 @@ export default function UpdateDetails() {
               )}
             </div>
 
-            <span className="inline-flex items-center gap-1.5 text-gold font-medium bg-saffron/10 px-3 py-1 rounded-md border border-gold/20 shadow-sm">
-              <UserCheck size={13} className="text-saffron shrink-0" /> By Admin: {creatorName}
-            </span>
+                       <OBBadge postedByRole={update.postedByRole} adminName={update.adminName} createdBy={update.createdBy} authorName={update.authorName} bearerDesignation={update.bearerDesignation} />
           </div>
 
           {/* Notice Title */}

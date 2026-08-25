@@ -10,6 +10,7 @@ import WhatsappBand from '../components/WhatsappBand';
 import useScrollReveal from '../hooks/useScrollReveal';
 import settings from '../data/settings';
 import { useAdmin } from '../context/AdminContext';
+import OBBadge from '../components/OBBadge';
 
 function SectionHeading({ eyebrow, hindiTitle, englishTitle }) {
   return (
@@ -241,11 +242,15 @@ export default function Home() {
             englishTitle="Gallery"
           />
           <div ref={galleryRef} className="reveal-stagger grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {previewGallery.map((item) => (
+                     {previewGallery.map((item) => (
               <Link
                 key={item._id || item.id}
                 to="/gallery"
-                className="aspect-square rounded-xl overflow-hidden bg-navy border border-gold/15 shadow-sm block group cursor-pointer"
+                className={`aspect-square rounded-xl overflow-hidden shadow-sm block group cursor-pointer relative ${
+                  item.postedByRole === 'OFFICE_BEARER'
+                    ? 'border-2 border-gold shadow-[0_0_18px_rgba(212,175,55,0.35)]'
+                    : 'bg-navy border border-gold/15'
+                }`}
               >
                 <img
                   src={item.image}
@@ -253,6 +258,11 @@ export default function Home() {
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
+                {item.postedByRole === 'OFFICE_BEARER' && (
+                  <span className="absolute top-1.5 left-1.5 text-[8px] font-bold bg-gradient-to-r from-gold to-saffron text-navy px-1.5 py-0.5 rounded shadow-md">
+                    👑 OB
+                  </span>
+                )}
               </Link>
             ))}
           </div>
@@ -280,14 +290,18 @@ export default function Home() {
             ref={updatesRef}
             className="reveal-stagger grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5"
           >
-            {featuredUpdates.map((update) => {
+                        {featuredUpdates.map((update) => {
               const rawDesc = update.description || update.content || update.excerpt;
-              const author = update.adminName || (update.createdBy ? update.createdBy.split('@')[0] : 'Admin');
+              const isOB = update.postedByRole === 'OFFICE_BEARER';
               return (
                 <Link
                   key={update._id || update.id || update.slug}
                   to={`/updates/${update.slug || update._id || update.id}`}
-                  className="premium-card rounded-2xl overflow-hidden hover:border-gold/50 hover:-translate-y-1 transition-all duration-300 bg-navy-2 border border-gold/15 p-4 flex flex-col justify-between shadow-md group"
+                  className={`premium-card rounded-2xl overflow-hidden transition-all duration-300 p-4 flex flex-col justify-between shadow-md group ${
+                    isOB
+                      ? 'bg-gradient-to-b from-navy-2 to-navy border-2 border-gold shadow-[0_0_25px_rgba(212,175,55,0.3)] hover:border-saffron hover:-translate-y-1'
+                      : 'bg-navy-2 border border-gold/15 hover:border-gold/50 hover:-translate-y-1'
+                  }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
@@ -310,8 +324,8 @@ export default function Home() {
                     )}
                   </div>
                   
-                  <div className="mt-4 pt-2.5 border-t border-gold/10 flex items-center justify-between text-[10px] text-cream/50">
-                    <span>By: <b className="text-gold/80">{author}</b></span>
+                                    <div className="mt-4 pt-2.5 border-t border-gold/10 flex items-center justify-between text-[10px] text-cream/50">
+                    <OBBadge postedByRole={update.postedByRole} adminName={update.adminName} createdBy={update.createdBy} authorName={update.authorName} bearerDesignation={update.bearerDesignation} />
                     <span className="text-gold group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
                       View Details →
                     </span>

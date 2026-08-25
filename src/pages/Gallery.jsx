@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAdmin } from '../context/AdminContext';
+import OBBadge from '../components/OBBadge';
 import { X, Calendar, Image as ImageIcon, UserCheck } from 'lucide-react';
 import useScrollReveal from '../hooks/useScrollReveal';
 
@@ -124,9 +125,7 @@ export default function Gallery() {
                         <span className="truncate">{formatDate(item.date)}</span>
                       ) : <span></span>}
 
-                      <span className="text-gold font-medium bg-saffron/10 px-1.5 py-0.5 rounded border border-gold/20 truncate">
-                        {creatorName}
-                      </span>
+                                            <OBBadge postedByRole={item.postedByRole} adminName={item.adminName} createdBy={item.createdBy} authorName={item.authorName} bearerDesignation={item.bearerDesignation} />
                     </div>
                   </div>
                 </div>
@@ -173,9 +172,7 @@ export default function Gallery() {
                       <Calendar size={13} className="text-saffron" /> {formatDate(activeImage.date)}
                     </span>
                   )}
-                  <span className="text-xs text-gold font-medium flex items-center gap-1 bg-saffron/10 px-2.5 py-1 rounded-md border border-gold/20">
-                    <UserCheck size={12} className="text-saffron" /> By Admin: {activeImage.adminName || (activeImage.createdBy ? activeImage.createdBy.split('@')[0] : 'Admin')}
-                  </span>
+                                    <OBBadge postedByRole={activeImage.postedByRole} adminName={activeImage.adminName} createdBy={activeImage.createdBy} authorName={activeImage.authorName} bearerDesignation={activeImage.bearerDesignation} />
                 </div>
               </div>
             </div>

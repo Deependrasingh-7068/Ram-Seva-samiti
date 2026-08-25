@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Crown, LogOut, FileText, CheckCircle2, UserCheck, Menu, X, Upload, Loader2, PlusCircle, Shield, Calendar, Image as ImageIcon, Megaphone, Trash2, Save, ArrowLeft, Award, Sparkles, ShieldCheck, Clock, Edit3 } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Crown, LogOut, FileText, CheckCircle2, UserCheck, Menu, X, Upload, Loader2, PlusCircle, Shield, Calendar, Image as ImageIcon, Megaphone, Trash2, Save, ArrowLeft, Award, Sparkles, ShieldCheck, Clock, Edit3, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 
 const formatMaskedId = (idStr) => {
@@ -42,14 +42,15 @@ export default function OfficeBearerPanel() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     try {
       const session = JSON.parse(localStorage.getItem('officeBearerAuth') || 'null');
-      if (!session || !session.token || session.expiresAt < Date.now()) {
-        navigate('/office-bearer/login');
-        return;
-      }
+      if (!session || !session.token) {
+  navigate('/office-bearer/login');
+  return;
+}
       setBearer(session.bearerInfo);
     } catch (err) {
       navigate('/office-bearer/login');
@@ -192,15 +193,23 @@ export default function OfficeBearerPanel() {
         };
       }
 
-      const endpoint = activeTab === 'events' ? '/api/events/save' : '/api/content/add';
+            const isEdit = Boolean(editingId);
+
+      const endpoint = isEdit
+        ? (activeTab === 'events' ? `/api/events/${editingId}` : `/api/content/update/${editingId}`)
+        : (activeTab === 'events' ? '/api/events/save' : '/api/content/add');
+
       if (activeTab !== 'events') {
         payload.type = activeTab;
       }
 
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}${endpoint}`, payload);
-      if (res.data.success || res.status === 201) {
-        setSuccessMsg('Published successfully with high priority!');
-        setTitle('');
+      const res = isEdit
+        ? await axios.put(`${import.meta.env.VITE_API_URL}${endpoint}`, payload)
+        : await axios.post(`${import.meta.env.VITE_API_URL}${endpoint}`, payload);
+
+      if (res.data.success || res.status === 201 || res.data.item) {
+        setSuccessMsg(isEdit ? 'Record updated successfully!' : 'Published successfully with high priority!');
+        setEditingId(null);
         setSubtitle('');
         setDescription('');
         setShortExcerpt('');
@@ -244,6 +253,7 @@ export default function OfficeBearerPanel() {
   };
 
   const startCreate = () => {
+    setEditingId(null);
     setTitle('');
     setSubtitle('');
     setDescription('');
@@ -259,7 +269,25 @@ export default function OfficeBearerPanel() {
     setSuccessMsg('');
     setShowAddModal(true);
   };
-
+  const startEdit = (item) => {
+  setTitle(item.title || '');
+  setSubtitle(item.subtitleEnglish || item.subtitle || '');
+  setDescription(item.description || '');
+  setShortExcerpt(item.shortExcerpt || '');
+  setCategory(item.category || '');
+  setDate(item.date ? item.date.split('T')[0] : '');
+  setLocation(item.location || '');
+  setImageUrl(item.image || '');
+  setEventStatus(item.status || 'Upcoming');
+  if (item.time) {
+    const [t, ampm] = item.time.split(' ');
+    const [h, m] = (t || '').split(':');
+    setEventHour(h || '06'); setEventMinute(m || '00'); setEventAmPm(ampm || 'AM');
+  }
+  setEditingId(item._id || item.id);
+  setSuccessMsg('');
+  setShowAddModal(true);
+};
   if (!bearer) return null;
 
   return (
@@ -289,6 +317,7 @@ export default function OfficeBearerPanel() {
           <button onClick={() => setActiveTab('events')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'events' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Events Management</button>
           <button onClick={() => setActiveTab('updates')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'updates' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Updates & Notices</button>
           <button onClick={() => setActiveTab('gallery')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'gallery' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Gallery Management</button>
+          
         </div>
 
         <div className="flex items-center gap-3">
@@ -308,6 +337,9 @@ export default function OfficeBearerPanel() {
           <button onClick={() => { setActiveTab('events'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'events' ? 'bg-saffron text-navy' : 'text-cream'}`}>Events Management</button>
           <button onClick={() => { setActiveTab('updates'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'updates' ? 'bg-saffron text-navy' : 'text-cream'}`}>Updates & Notices</button>
           <button onClick={() => { setActiveTab('gallery'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'gallery' ? 'bg-saffron text-navy' : 'text-cream'}`}>Gallery Management</button>
+          <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 text-left px-4 py-2.5 rounded-xl text-xs font-bold text-cream border-t border-gold/10 mt-2 pt-3">
+  <ExternalLink size={14} /> View Website
+</a>
         </div>
       )}
 
@@ -422,7 +454,11 @@ export default function OfficeBearerPanel() {
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end pt-3 md:pt-0 border-t border-gold/10 md:border-0">
+                        <button onClick={() => startEdit(item)} className="p-2.5 rounded-xl bg-saffron/10 text-saffron hover:bg-saffron hover:text-navy cursor-pointer transition-all shadow-sm" title="Edit Record">
+  <Edit3 size={16} />
+</button>
                           <button onClick={() => handleDeletePost(item)} className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white cursor-pointer transition-all shadow-sm" title="Delete Record">
+                           
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -449,11 +485,11 @@ export default function OfficeBearerPanel() {
             </button>
 
             <div>
-              <h3 className="font-display text-xl text-cream font-bold">
-                {activeTab === 'seva' && 'Add New Seva Card'}
-                {activeTab === 'events' && 'Add New Event'}
-                {activeTab === 'updates' && 'Publish New Notice'}
-                {activeTab === 'gallery' && 'Add Photo to Gallery'}
+                            <h3 className="font-display text-xl text-cream font-bold">
+                {activeTab === 'seva' && `${editingId ? 'Edit' : 'Add New'} Seva Card`}
+                {activeTab === 'events' && `${editingId ? 'Edit' : 'Add New'} Event`}
+                {activeTab === 'updates' && (editingId ? 'Edit Notice' : 'Publish New Notice')}
+                {activeTab === 'gallery' && (editingId ? 'Edit Gallery Photo' : 'Add Photo to Gallery')}
               </h3>
               <p className="text-xs text-gold/80 mt-1 font-hindi">Publishing as: {bearer.nameHindi}</p>
             </div>
@@ -666,7 +702,7 @@ export default function OfficeBearerPanel() {
                   Cancel
                 </button>
                 <button type="submit" disabled={loading || uploadingImage} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-saffron to-amber-500 hover:from-amber-500 hover:to-saffron text-navy font-bold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
-                  {loading ? <span>Saving...</span> : <><Save size={16} /><span>Save</span></>}
+                                    {loading ? <span>Saving...</span> : <><Save size={16} /><span>{editingId ? 'Update' : 'Publish'}</span></>}
                 </button>
               </div>
 

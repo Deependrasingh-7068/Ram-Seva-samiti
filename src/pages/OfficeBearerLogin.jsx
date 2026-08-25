@@ -31,7 +31,7 @@ export default function OfficeBearerLogin() {
         localStorage.setItem('officeBearerAuth', JSON.stringify({
           token: res.data.officeBearer._id,
           bearerInfo: res.data.officeBearer,
-          expiresAt: Date.now() + 8 * 60 * 60 * 1000 // 8 hours session
+        //   expiresAt: Date.now() + 8 * 60 * 60 * 1000 // 8 hours session
         }));
         
         navigate('/office-bearer/panel');

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import OBBadge from './OBBadge';
 import { Calendar, Clock, MapPin, UserCheck, X, Maximize2, ArrowRight } from 'lucide-react';
 
 function formatDate(iso) {
@@ -43,9 +44,13 @@ export default function EventCard({ event, enableModal = false }) {
 
   return (
     <>
-      <article
+            <article
         onClick={handleClick}
-        className="premium-card group block w-full rounded-2xl overflow-hidden hover:border-gold/45 hover:-translate-y-1 transition-all duration-300 bg-navy-2 border border-gold/15 flex flex-col justify-between shadow-md cursor-pointer relative"
+        className={`premium-card group block w-full rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-md cursor-pointer relative ${
+          event.postedByRole === 'OFFICE_BEARER'
+            ? 'bg-gradient-to-b from-navy-2 to-navy border-2 border-gold shadow-[0_0_25px_rgba(212,175,55,0.3)] hover:border-saffron hover:-translate-y-1'
+            : 'bg-navy-2 border border-gold/15 hover:border-gold/45 hover:-translate-y-1'
+        }`}
       >
         <div>
           {/* Hover Indicator Icon */}
@@ -115,12 +120,10 @@ export default function EventCard({ event, enableModal = false }) {
           </div>
         </div>
 
-        {/* Admin Attribution Footer */}
+                {/* Admin Attribution Footer */}
         <div className="px-4 py-2 bg-navy/50 border-t border-gold/10 flex items-center justify-between text-[10px] text-cream/50">
           <span>श्री राम सेवा</span>
-          <span className="flex items-center gap-1 text-gold font-medium bg-saffron/10 px-1.5 py-0.5 rounded border border-gold/20 text-[9px]">
-            <UserCheck size={10} className="text-saffron shrink-0" /> {creatorName}
-          </span>
+          <OBBadge postedByRole={event.postedByRole} adminName={event.adminName} createdBy={event.createdBy} authorName={event.authorName} bearerDesignation={event.bearerDesignation} />
         </div>
       </article>
 
@@ -181,12 +184,10 @@ export default function EventCard({ event, enableModal = false }) {
               )}
             </div>
 
-            {/* FIXED FOOTER SECTION */}
+                       {/* FIXED FOOTER SECTION */}
             <div className="shrink-0 pt-3 pb-3 px-5 border-t border-gold/20 flex items-center justify-between text-[11px] text-cream/70 whitespace-nowrap bg-navy/40">
               <span className="truncate">श्री राम सेवा समिति</span>
-              <span className="flex items-center gap-1 text-gold font-medium bg-saffron/15 px-3 py-1 rounded-lg border border-gold/25 truncate ml-2">
-                <UserCheck size={12} className="text-saffron shrink-0" /> By Admin: {creatorName}
-              </span>
+              <OBBadge postedByRole={event.postedByRole} adminName={event.adminName} createdBy={event.createdBy} authorName={event.authorName} bearerDesignation={event.bearerDesignation} />
             </div>
 
           </div>

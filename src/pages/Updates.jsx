@@ -1,5 +1,6 @@
 import { useAdmin } from '../context/AdminContext';
 import { Link } from 'react-router-dom';
+import OBBadge from '../components/OBBadge';
 import { Calendar, UserCheck, ArrowRight, BellRing } from 'lucide-react';
 import useScrollReveal from '../hooks/useScrollReveal';
 
@@ -54,9 +55,13 @@ export default function Updates() {
               const author = item.adminName || (item.createdBy ? item.createdBy.split('@')[0] : 'Admin');
 
               return (
-                <div
+                                <div
                   key={updateKey}
-                  className="bg-navy-2 border border-gold/15 rounded-2xl p-5 flex flex-col justify-between shadow-xl hover:border-gold/45 hover:-translate-y-1 transition-all duration-300 min-h-[220px] group"
+                  className={`rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all duration-300 min-h-[220px] group ${
+                    item.postedByRole === 'OFFICE_BEARER'
+                      ? 'bg-gradient-to-b from-navy-2 to-navy border-2 border-gold shadow-[0_0_25px_rgba(212,175,55,0.3)] hover:border-saffron hover:-translate-y-1'
+                      : 'bg-navy-2 border border-gold/15 hover:border-gold/45 hover:-translate-y-1'
+                  }`}
                 >
                   <div>
                     {/* Top Row: Category Badge & Date */}
@@ -85,12 +90,9 @@ export default function Updates() {
                     )}
                   </div>
 
-                  {/* Bottom Footer: Author Attribution & Link */}
+                                    {/* Bottom Footer: Author Attribution & Link */}
                   <div className="pt-3 mt-4 border-t border-gold/10 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-1 text-gold font-medium bg-saffron/10 px-2 py-0.5 rounded border border-gold/20 text-[10px]">
-                      <UserCheck size={11} className="text-saffron shrink-0" />
-                      By Admin: {author}
-                    </span>
+                    <OBBadge postedByRole={item.postedByRole} adminName={item.adminName} createdBy={item.createdBy} authorName={item.authorName} bearerDesignation={item.bearerDesignation} />
 
                     <Link
                       to={`/updates/${targetSlug}`}

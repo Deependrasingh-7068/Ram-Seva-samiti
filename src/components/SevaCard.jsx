@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import OBBadge from './OBBadge';
 import { useNavigate } from 'react-router-dom';
 import {
   Flame,
@@ -26,18 +27,7 @@ const ICONS = {
   sparkles: Sparkles,
 };
 
-export default function SevaCard({ 
-  title, 
-  titleEnglish, 
-  subtitle, 
-  description, 
-  category, 
-  icon, 
-  image,
-  adminName,
-  createdBy,
-  enableModal = false 
-}) {
+export default function SevaCard({ title, titleEnglish, subtitle, description, category, icon, image, adminName, createdBy, postedByRole, authorName, bearerDesignation, enableModal = false }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -58,7 +48,11 @@ export default function SevaCard({
       {/* Main Card */}
       <article 
         onClick={handleClick}
-        className="premium-card rounded-2xl p-6 h-full flex flex-col justify-between hover:border-gold/40 hover:-translate-y-1 transition-all duration-500 overflow-hidden bg-navy-2 border border-gold/15 shadow-xl w-full cursor-pointer relative group"
+        className={`premium-card rounded-2xl p-6 h-full flex flex-col justify-between transition-all duration-500 overflow-hidden shadow-xl w-full cursor-pointer relative group ${
+  postedByRole === 'OFFICE_BEARER'
+    ? 'bg-gradient-to-b from-navy-2 to-navy border-2 border-gold shadow-[0_0_25px_rgba(212,175,55,0.3)] hover:border-saffron hover:-translate-y-1'
+    : 'bg-navy-2 border border-gold/15 hover:border-gold/40 hover:-translate-y-1'
+}`}
       >
         <div>
           {/* Hover Indicator Icon */}
@@ -97,12 +91,10 @@ export default function SevaCard({
           </div>
         </div>
 
-        {/* Admin Attribution Footer */}
+                {/* Admin Attribution Footer */}
         <div className="mt-4 pt-3 border-t border-gold/10 flex items-center justify-between text-[11px] text-cream/70 whitespace-nowrap bg-navy/30 -mx-6 -mb-6 px-6 py-2.5">
           <span className="truncate">श्री राम सेवा समिति</span>
-          <span className="flex items-center gap-1 text-gold font-medium bg-saffron/10 px-2 py-0.5 rounded-md border border-gold/20 truncate ml-2">
-            <UserCheck size={11} className="text-saffron shrink-0" /> By Admin: {creatorName}
-          </span>
+          <OBBadge postedByRole={postedByRole} adminName={adminName} createdBy={createdBy} authorName={authorName} bearerDesignation={bearerDesignation} />
         </div>
       </article>
 
@@ -145,11 +137,10 @@ export default function SevaCard({
             </div>
 
             {/* FIXED FOOTER SECTION */}
+            
             <div className="shrink-0 pt-3 pb-3 px-5 border-t border-gold/20 flex items-center justify-between text-[11px] text-cream/70 whitespace-nowrap bg-navy/40">
               <span className="truncate">श्री राम सेवा समिति</span>
-              <span className="flex items-center gap-1 text-gold font-medium bg-saffron/15 px-3 py-1 rounded-lg border border-gold/25 truncate ml-2">
-                <UserCheck size={12} className="text-saffron shrink-0" /> By Admin: {creatorName}
-              </span>
+              <OBBadge postedByRole={postedByRole} adminName={adminName} createdBy={createdBy} authorName={authorName} bearerDesignation={bearerDesignation} />
             </div>
 
           </div>

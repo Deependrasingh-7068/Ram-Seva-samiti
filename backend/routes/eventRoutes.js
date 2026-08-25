@@ -13,6 +13,9 @@ const EventSchema = new mongoose.Schema(
     image: { type: String, default: '' },
     adminName: { type: String, default: 'Admin' },
     createdBy: { type: String, default: '' },
+    postedByRole: { type: String, default: 'ADMIN' },
+    authorName: { type: String },
+    bearerDesignation: { type: String },
   },
   { timestamps: true, collection: 'events' }
 );
@@ -35,7 +38,7 @@ router.get('/all', async (req, res) => {
 // SAVE / ADD EVENT
 router.post('/save', async (req, res) => {
   try {
-    const { title, category, date, time, location, status, image, adminName, createdBy } = req.body;
+        const { title, category, date, time, location, status, image, adminName, createdBy, postedByRole, authorName, bearerDesignation } = req.body;
     
     const newEvent = new Event({
       title,
@@ -47,6 +50,9 @@ router.post('/save', async (req, res) => {
       image,
       adminName,
       createdBy,
+      postedByRole,
+      authorName,
+      bearerDesignation,
     });
 
     const savedEvent = await newEvent.save();

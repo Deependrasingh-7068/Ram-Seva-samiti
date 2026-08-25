@@ -34,6 +34,9 @@ const ContentItemSchema = new mongoose.Schema(
     email: { type: String },
     adminName: { type: String, default: 'Admin' },
     createdBy: { type: String, required: true, lowercase: true, trim: true },
+    postedByRole: { type: String, default: 'ADMIN' },
+    authorName: { type: String },
+    bearerDesignation: { type: String },
   },
   { timestamps: true }
 );
