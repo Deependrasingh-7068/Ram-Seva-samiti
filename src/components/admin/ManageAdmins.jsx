@@ -71,7 +71,7 @@ export default function ManageAdmins() {
   // Fetch / Sync Admins List
   const fetchAdmins = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin-auth/admins');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/admins`);
       const data = await res.json();
       if (data.success && Array.isArray(data.admins)) {
         setAdmins(data.admins);
@@ -129,7 +129,7 @@ export default function ManageAdmins() {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin-auth/create', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, contact, designation, designationHindi: newAdminObj.designationHindi, password }),
@@ -199,7 +199,7 @@ export default function ManageAdmins() {
 
     // 3. Try syncing with backend API
     try {
-      await fetch(`http://localhost:5000/api/admin-auth/update/${editingAdmin._id || editingAdmin.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/update/${editingAdmin._id || editingAdmin.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedAdmin),
@@ -221,7 +221,7 @@ export default function ManageAdmins() {
     localStorage.setItem('registered_admins', JSON.stringify(filtered));
 
     try {
-      await fetch(`http://localhost:5000/api/admin-auth/delete/${deleteTarget._id || deleteTarget.id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/delete/${deleteTarget._id || deleteTarget.id}`, {
         method: 'DELETE',
       });
     } catch {}
