@@ -56,6 +56,22 @@ router.post('/save', async (req, res) => {
   }
 });
 
+// UPDATE EVENT (used for edit + auto Upcoming->Ongoing status flip)
+router.put('/:id', async (req, res) => {
+  try {
+    const updated = await Event.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+    return res.json({ success: true, item: updated });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // DELETE EVENT
 router.delete('/delete/:id', async (req, res) => {
   try {

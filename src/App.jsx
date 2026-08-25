@@ -35,7 +35,11 @@ import SuperAdminRoutes from './routes/SuperAdminRoutes';
 
 // Admin Components
 import AdminPrivacyPolicy from './components/AdminPrivacyPolicy';
-import AdminTerms from './components/AdminTerms'; // <- Naya Import
+import AdminTerms from './components/AdminTerms';
+
+// Office Bearer Pages
+import OfficeBearerLogin from './pages/OfficeBearerLogin';
+import OfficeBearerPanel from './pages/OfficeBearerPanel';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -52,7 +56,11 @@ function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  const isAdminRoute = location.pathname.startsWith('/admin');
+  // Check if current route belongs to admin, superadmin or office bearer dashboard
+  const isAdminRoute = location.pathname.startsWith('/admin') || 
+                       location.pathname.startsWith('/superadmin') || 
+                       location.pathname.startsWith('/office-bearer');
+                       
   const { authOpen, setAuthOpen } = useAuth();
 
   return (
@@ -88,8 +96,15 @@ function AppShell() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
-                      <Route path="/superadmin/*" element={<SuperAdminRoutes />} />
+            
+            {/* Super Admin Routes */}
+            <Route path="/superadmin/*" element={<SuperAdminRoutes />} />
 
+            {/* Office Bearer Routes */}
+            <Route path="/office-bearer/login" element={<OfficeBearerLogin />} />
+            <Route path="/office-bearer/panel" element={<OfficeBearerPanel />} />
+
+            {/* Admin Dashboard Layout Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="home" element={<AdminDashboard />} />
@@ -103,7 +118,7 @@ function AppShell() {
               <Route path="volunteer-requests" element={<AdminDashboard />} />
               <Route path="srss-volunteers" element={<AdminDashboard />} />
               <Route path="privacy" element={<AdminPrivacyPolicy />} />
-              <Route path="terms" element={<AdminTerms />} /> {/* <- Yahan route update kar diya */}
+              <Route path="terms" element={<AdminTerms />} />
               <Route path="volunteer" element={<AdminDashboard />} />
               <Route path="admins" element={<AdminDashboard />} />
             </Route>

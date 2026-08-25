@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut } from 'lucide-react';
+import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Helper: Empty string ko 'NA' format mein normalize karega
@@ -34,6 +34,31 @@ export default function SuperAdminPanel() {
   const [volunteers, setVolunteers] = useState([]);
   const [volunteerSearch, setVolunteerSearch] = useState('');
   
+  // Office Bearers States
+  const [officeBearers, setOfficeBearers] = useState([]);
+  const [obDesignation, setObDesignation] = useState('');
+  const [obNameHindi, setObNameHindi] = useState('');
+  const [obNameEnglish, setObNameEnglish] = useState('');
+  const [obEmail, setObEmail] = useState('');
+  const [obPassword, setObPassword] = useState('');
+  const [obContact, setObContact] = useState('');
+  const [obAadhaar, setObAadhaar] = useState('');
+  const [obDob, setObDob] = useState('');
+  const [obPhoto, setObPhoto] = useState('');
+  const [obUploading, setObUploading] = useState(false);
+  const [obLoading, setObLoading] = useState(false);
+
+  // Edit Office Bearer Modal States
+  const [editingBearer, setEditingBearer] = useState(null);
+  const [editObNameHindi, setEditObNameHindi] = useState('');
+  const [editObNameEnglish, setEditObNameEnglish] = useState('');
+  const [editObEmail, setEditObEmail] = useState('');
+  const [editObContact, setEditObContact] = useState('');
+  const [editObAadhaar, setEditObAadhaar] = useState('');
+  const [editObPhoto, setEditObPhoto] = useState('');
+  const [editObUploading, setEditObUploading] = useState(false);
+  const [revealObAadhaar, setRevealObAadhaar] = useState(false);
+
   const [showPassword, setShowPassword] = useState(false);
 
   const [editingVolunteer, setEditingVolunteer] = useState(null);
@@ -80,9 +105,18 @@ export default function SuperAdminPanel() {
     } catch (err) { console.error(err); }
   };
 
+  const fetchOfficeBearers = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`);
+      const data = await res.json();
+      if (data.success) setOfficeBearers(data.officeBearers);
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => {
     fetchAdmins();
     fetchVolunteers();
+    fetchOfficeBearers();
   }, []);
 
   // UPDATED IMAGE UPLOAD VIA SECURE BACKEND /api/upload ENDPOINT WITH SHARP COMPRESSION
@@ -247,6 +281,138 @@ export default function SuperAdminPanel() {
     }
   };
 
+  // Office Bearer Create Handler
+  const handleCreateOfficeBearer = async (e) => {
+    e.preventDefault();
+    if (!obDesignation) {
+      alert('Please select a designation.');
+      return;
+    }
+
+    const designationMap = {
+      'Patron': 'संरक्षक',
+      'President': 'अध्यक्ष',
+      'General Secretary': 'महासचिव',
+      'Treasurer': 'कोषाध्यक्ष'
+    };
+
+    setObLoading(true);
+    const payload = {
+      designation: obDesignation,
+      designationHindi: designationMap[obDesignation] || 'पदाधिकारी',
+      nameHindi: obNameHindi.trim(),
+      nameEnglish: obNameEnglish.trim(),
+      email: obEmail.trim().toLowerCase(),
+      password: obPassword,
+      contact: sanitizeValue(obContact),
+      aadhaarNumber: sanitizeValue(obAadhaar),
+      dob: sanitizeValue(obDob),
+      photo: obPhoto || ''
+    };
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/create`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+});
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        fetchOfficeBearers();
+        setObDesignation(''); setObNameHindi(''); setObNameEnglish(''); setObEmail(''); setObPassword(''); setObContact(''); setObAadhaar(''); setObDob(''); setObPhoto('');
+      } else {
+        alert(data.message || 'Failed to create Office Bearer');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Server error during Office Bearer creation.');
+    } finally {
+      setObLoading(false);
+    }
+  };
+
+  // Office Bearer Freeze Toggle
+  const handleToggleFreezeBearer = async (bearer) => {
+    const targetId = bearer._id || bearer.id;
+    const newFreezeState = !bearer.isFrozen;
+    const actionText = newFreezeState ? 'freeze' : 'unfreeze';
+
+    if (window.confirm(`Are you sure you want to ${actionText} Office Bearer ${bearer.nameHindi}?`)) {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/freeze/${targetId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isFrozen: newFreezeState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchOfficeBearers();
+        } else {
+          alert(data.message || 'Failed to update freeze status');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  // Office Bearer Delete
+  const handleDeleteBearer = async (bearer) => {
+    const targetId = bearer._id || bearer.id;
+    if (window.confirm(`Are you sure you want to permanently remove Office Bearer ${bearer.nameHindi}?`)) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/remove/${targetId}`, { method: 'DELETE' });
+        fetchOfficeBearers();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  // Open Edit Office Bearer Modal
+  const openEditBearerModal = (bearer) => {
+    setEditingBearer(bearer);
+    setEditObNameHindi(bearer.nameHindi || '');
+    setEditObNameEnglish(bearer.nameEnglish || '');
+    setEditObEmail(bearer.email || '');
+    setEditObContact(bearer.contact === 'NA' ? '' : (bearer.contact || ''));
+    setEditObAadhaar(bearer.aadhaarNumber || '');
+    setEditObPhoto(bearer.photo || '');
+    setRevealObAadhaar(false);
+  };
+
+  const handleUpdateOfficeBearer = async (e) => {
+    e.preventDefault();
+    if (!editingBearer) return;
+    const targetId = editingBearer._id || editingBearer.id;
+    const payload = {
+      nameHindi: editObNameHindi.trim(),
+      nameEnglish: editObNameEnglish.trim(),
+      email: editObEmail.trim().toLowerCase(),
+      contact: sanitizeValue(editObContact),
+      photo: editObPhoto || ''
+    };
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/update/${targetId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Office Bearer profile updated successfully!');
+        setEditingBearer(null);
+        fetchOfficeBearers();
+      } else {
+        alert(data.message || 'Failed to update');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Toggle Volunteer Freeze / Unfreeze Status (SuperAdmin only)
   const handleToggleFreezeVolunteer = async (vol) => {
     const targetId = vol._id || vol.id;
@@ -349,6 +515,17 @@ export default function SuperAdminPanel() {
     return 0;
   });
 
+  // Available designations list with strict 1-per-type check
+  const allDesignations = [
+    { value: 'Patron', labelEng: 'Patron', labelHindi: 'संरक्षक' },
+    { value: 'President', labelEng: 'President', labelHindi: 'अध्यक्ष' },
+    { value: 'General Secretary', labelEng: 'General Secretary', labelHindi: 'महासचिव' },
+    { value: 'Treasurer', labelEng: 'Treasurer', labelHindi: 'कोषाध्यक्ष' }
+  ];
+
+  const assignedDesignations = officeBearers.map(b => b.designation);
+  const availableDesignations = allDesignations.filter(d => !assignedDesignations.includes(d.value));
+
   return (
     <div className="min-h-screen bg-navy pt-28 pb-20 px-6 max-w-[95rem] mx-auto text-cream">
        <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 mb-8 flex items-start justify-between gap-4 flex-wrap">
@@ -376,6 +553,9 @@ export default function SuperAdminPanel() {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-gold/70 px-3 pb-2">Control Modules</h3>
           <button onClick={() => setActiveTab('admins')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'admins' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
             <Shield size={16} /> Admin Management
+          </button>
+          <button onClick={() => setActiveTab('officeBearers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'officeBearers' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
+            <Crown size={16} /> Office Bearer 👑
           </button>
           <button onClick={() => setActiveTab('volunteers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'volunteers' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
             <Users size={16} /> Volunteer Management
@@ -542,6 +722,159 @@ export default function SuperAdminPanel() {
                         })
                       ) : (
                         <tr><td colSpan="9" className="py-8 text-center text-xs text-cream/50">No admins found.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* OFFICE BEARER MANAGEMENT TAB */}
+          {activeTab === 'officeBearers' && (
+            <div className="space-y-6">
+              <form onSubmit={handleCreateOfficeBearer} className="bg-navy-2 p-8 rounded-2xl border border-gold/20 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-gold flex items-center gap-2">
+                    <Crown size={20} /> Create / Assign Office Bearer (पदाधिकारी)
+                  </h3>
+                  <span className="text-[11px] text-saffron bg-saffron/10 px-3 py-1 rounded-full border border-saffron/30">
+                    Strictly 1 active holder per designation
+                  </span>
+                </div>
+
+                {/* Designation Dropdown with automatic hiding for assigned posts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gold/80">Select Designation (पद)</label>
+                    <select
+                      value={obDesignation}
+                      onChange={(e) => setObDesignation(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron cursor-pointer"
+                      required
+                    >
+                      <option value="">-- Choose Designation --</option>
+                      {availableDesignations.map((d) => (
+                        <option key={d.value} value={d.value}>
+                          {d.labelEng} ({d.labelHindi})
+                        </option>
+                      ))}
+                    </select>
+                    {availableDesignations.length === 0 && (
+                      <p className="text-[11px] text-amber-400">All 4 Office Bearer positions are currently filled!</p>
+                    )}
+                  </div>
+
+                  <input 
+                    type="text" 
+                    placeholder="Full Name (Hindi) e.g. आचार्य राम कुमार" 
+                    value={obNameHindi} 
+                    onChange={(e) => setObNameHindi(e.target.value)} 
+                    className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron font-hindi self-end" 
+                    required 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="text" placeholder="Full Name (English)" value={obNameEnglish} onChange={(e) => setObNameEnglish(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron" />
+                  <input type="email" placeholder="Email / Login ID" value={obEmail} onChange={(e) => setObEmail(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron" required />
+                  <input type="text" placeholder="Contact Number" value={obContact} onChange={(e) => setObContact(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input type="text" placeholder="Aadhaar Number (12 digits)" value={obAadhaar} onChange={(e) => setObAadhaar(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron font-mono" required />
+                  <input type="text" placeholder="Date of Birth (DDMMYYYY)" maxLength={8} value={obDob} onChange={(e) => setObDob(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron tracking-widest" required />
+                  <input type="password" placeholder="Initial Login Password" value={obPassword} onChange={(e) => setObPassword(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron" required />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setObPhoto, setObUploading)} className="w-full text-xs text-cream/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy cursor-pointer bg-navy border border-gold/20 rounded-xl" />
+                  {obPhoto && (
+                    <button type="button" onClick={() => setObPhoto('')} className="px-3 py-2 rounded-xl bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500 hover:text-white transition-colors cursor-pointer shrink-0">
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                {obUploading && <p className="text-xs text-saffron flex items-center gap-1"><Loader2 size={14} className="animate-spin" /> Uploading & optimizing image...</p>}
+                {obPhoto && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <img src={obPhoto} alt="Preview" className="w-10 h-10 rounded-full object-cover border border-saffron" />
+                    <span className="text-xs text-saffron">Photo attached & optimized</span>
+                  </div>
+                )}
+
+                <button type="submit" disabled={obLoading || availableDesignations.length === 0} className="px-8 py-3 rounded-full bg-saffron hover:bg-saffron-deep text-navy font-semibold text-sm cursor-pointer shadow-lg disabled:opacity-50">
+                  {obLoading && <Loader2 className="animate-spin inline mr-2" size={16} />} Create Office Bearer
+                </button>
+              </form>
+
+              {/* Registered Office Bearers Table */}
+              <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 space-y-4">
+                <h3 className="text-xl font-semibold text-cream flex items-center gap-2">
+                  <Crown size={18} className="text-saffron" /> Active Office Bearers in Samiti
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[850px]">
+                    <thead>
+                      <tr className="border-b border-gold/20 text-saffron text-sm">
+                        <th className="py-3 px-4">Profile</th>
+                        <th className="py-3 px-4">Bearer ID</th>
+                        <th className="py-3 px-4">Designation</th>
+                        <th className="py-3 px-4">Name</th>
+                        <th className="py-3 px-4">Email / ID</th>
+                        <th className="py-3 px-4">Contact</th>
+                        <th className="py-3 px-4">Aadhaar (6 Digits)</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                        <th className="py-3 px-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm divide-y divide-gold/10 text-cream/80">
+                      {officeBearers.length > 0 ? (
+                        officeBearers.map((bearer) => {
+                          const bearerId = bearer._id || bearer.id;
+                          const maskedAadhaar = formatMaskedId(bearer.aadhaarNumber);
+                          const isFrozen = bearer.isFrozen;
+
+                          return (
+                            <tr key={bearerId} className={`hover:bg-navy/40 transition-colors ${isFrozen ? 'bg-red-950/20' : ''}`}>
+                              <td className="py-3.5 px-4">
+                                <div className="w-10 h-10 rounded-full overflow-hidden bg-navy border border-gold/30 relative">
+                                  {bearer.photo ? <img src={bearer.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-saffron text-xs">👑</div>}
+                                  {isFrozen && <span className="absolute inset-0 bg-red-600/40 flex items-center justify-center text-[10px] text-white font-bold">FROZEN</span>}
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4 font-mono text-xs text-saffron">{bearer.bearerId}</td>
+                              <td className="py-3.5 px-4 text-gold font-bold text-xs">
+                                {bearer.designation} <span className="font-hindi text-saffron block text-[11px]">({bearer.designationHindi})</span>
+                              </td>
+                              <td className="py-3.5 px-4 font-medium text-cream font-hindi">{bearer.nameHindi}</td>
+                              <td className="py-3.5 px-4 text-xs text-cream/75">{bearer.email}</td>
+                              <td className="py-3.5 px-4 text-xs">{bearer.contact || 'NA'}</td>
+                              <td className="py-3.5 px-4 font-mono text-xs text-gold font-semibold">{maskedAadhaar}</td>
+                              <td className="py-3.5 px-4 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleFreezeBearer(bearer)}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mx-auto transition-all cursor-pointer ${
+                                    isFrozen 
+                                      ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white' 
+                                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white'
+                                  }`}
+                                >
+                                  {isFrozen ? <Lock size={13} /> : <Unlock size={13} />}
+                                  <span>{isFrozen ? 'Frozen' : 'Active'}</span>
+                                </button>
+                              </td>
+                              <td className="py-3.5 px-4 flex justify-center gap-2">
+                                <button onClick={() => openEditBearerModal(bearer)} className="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white cursor-pointer" title="Edit"><Edit3 size={16} /></button>
+                                <button onClick={() => handleDeleteBearer(bearer)} className="p-2 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-white cursor-pointer" title="Remove"><Trash2 size={16} /></button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr><td colSpan="9" className="py-8 text-center text-xs text-cream/50">No Office Bearers assigned yet.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -767,6 +1100,85 @@ export default function SuperAdminPanel() {
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setEditingAdmin(null)} className="flex-1 py-3 bg-navy border border-gold/20 text-cream rounded-xl text-xs">Cancel</button>
+                <button type="submit" className="flex-1 py-3 bg-saffron text-navy rounded-xl text-xs font-semibold"><Save size={15} className="inline mr-1" /> Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT OFFICE BEARER MODAL */}
+      {editingBearer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/80 backdrop-blur-sm px-4">
+          <div className="relative bg-navy-2 border border-gold/25 p-8 rounded-3xl max-w-lg w-full shadow-2xl space-y-6">
+            <button onClick={() => setEditingBearer(null)} className="absolute top-5 right-5 text-cream/60 hover:text-saffron"><X size={22} /></button>
+            <h3 className="text-2xl text-cream font-display">Edit Office Bearer Profile</h3>
+            <form onSubmit={handleUpdateOfficeBearer} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" value={editObNameHindi} onChange={(e) => setEditObNameHindi(e.target.value)} placeholder="Name (Hindi)" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none font-hindi" required />
+                <input type="text" value={editObNameEnglish} onChange={(e) => setEditObNameEnglish(e.target.value)} placeholder="Name (English)" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="email" value={editObEmail} onChange={(e) => setEditObEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none" required />
+                <input type="text" value={editObContact} onChange={(e) => setEditObContact(e.target.value)} placeholder="Contact" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none" />
+              </div>
+
+              <div className="relative flex items-center bg-navy border border-gold/20 rounded-xl px-3 py-2">
+                <input 
+                  type="text" 
+                  value={revealObAadhaar ? editObAadhaar : formatMaskedId(editObAadhaar)} 
+                  readOnly 
+                  placeholder="Aadhaar" 
+                  className="w-full bg-transparent text-cream text-xs outline-none font-mono cursor-default" 
+                />
+                {!revealObAadhaar ? (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const dobCheck = prompt('Enter Bearer Date of Birth (DDMMYYYY) to reveal full Aadhaar:');
+                      if (dobCheck) {
+                        const targetId = editingBearer._id || editingBearer.id;
+                        fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/verify-dob/${targetId}`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ dob: dobCheck })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.success) {
+                            setEditObAadhaar(data.aadhaar);
+                            setRevealObAadhaar(true);
+                          } else {
+                            alert(data.message || 'Incorrect Date of Birth!');
+                          }
+                        })
+                        .catch(() => alert('Verification failed.'));
+                      }
+                    }}
+                    className="text-saffron hover:text-gold shrink-0 cursor-pointer p-1"
+                    title="Reveal Full ID"
+                  >
+                    <Lock size={15} />
+                  </button>
+                ) : (
+                  <span className="text-emerald-400 shrink-0 p-1" title="Revealed">
+                    <Unlock size={15} />
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-gold/85">Profile Picture</label>
+                <div className="flex items-center gap-3">
+                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setEditObPhoto, setEditObUploading)} className="w-full text-xs text-cream/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-saffron file:text-navy cursor-pointer bg-navy border rounded-xl" />
+                  {editObPhoto && <button type="button" onClick={() => setEditObPhoto('')} className="px-3 py-2 bg-red-500/20 text-red-400 text-xs rounded-xl">Remove</button>}
+                </div>
+                {editObUploading && <p className="text-xs text-saffron flex items-center gap-1 mt-1"><Loader2 size={14} className="animate-spin" /> Uploading & optimizing image...</p>}
+                {editObPhoto && <img src={editObPhoto} alt="Preview" className="w-12 h-12 rounded-full object-cover border border-saffron mt-2" />}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditingBearer(null)} className="flex-1 py-3 bg-navy border border-gold/20 text-cream rounded-xl text-xs">Cancel</button>
                 <button type="submit" className="flex-1 py-3 bg-saffron text-navy rounded-xl text-xs font-semibold"><Save size={15} className="inline mr-1" /> Save Changes</button>
               </div>
             </form>

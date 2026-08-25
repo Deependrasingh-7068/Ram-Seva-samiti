@@ -4,6 +4,7 @@ import { Menu, X, MessageCircle, ShieldCheck, Crown } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
 import NotificationBell from './NotificationBell';
 import AdminLoginModal from './AdminLoginModal';
+import LoginChoiceModal from './LoginChoiceModal'; // Naya Login Choice Modal imported
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -19,6 +20,7 @@ const LINKS = [
 export default function Navbar({ menuOpen, onMenuToggle }) {
   const scrolled = useScrollNav(40);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [loginChoiceModalOpen, setLoginChoiceModalOpen] = useState(false); // New state for choice modal
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,8 +37,8 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
     }
   };
 
-  // Super Admin Click Handler: Laptop/Desktop aur Mobile dono ke liye session validate karega
-     const handleSuperAdminClick = (e) => {
+  // Super Admin Click Handler: Session validate karega, agar valid hai toh dashboard, nahi toh Choice Modal khulega
+  const handleSuperAdminClick = (e) => {
     e.preventDefault();
     try {
       const session = JSON.parse(localStorage.getItem('superAdminAuth') || 'null');
@@ -45,15 +47,15 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
       if (isValid) {
         navigate('/superadmin');
       } else {
-        navigate('/superadmin/login');
+        setLoginChoiceModalOpen(true); // Open the choice modal instead of direct login page
       }
     } catch (err) {
-      navigate('/superadmin/login');
+      setLoginChoiceModalOpen(true);
     }
   };
 
   // Check if the current user is viewing Admin Dashboard pages
-  const isAdminDashboard = location.pathname.startsWith('/admin') || location.pathname.startsWith('/superadmin');
+  const isAdminDashboard = location.pathname.startsWith('/admin') || location.pathname.startsWith('/superadmin') || location.pathname.startsWith('/office-bearer');
 
   // Aapka WhatsApp Group Link
   const whatsappGroupLink = "https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8";
@@ -120,7 +122,7 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
               </a>
             )}
 
-            {/* SUPER ADMIN BUTTON — Updated with strict session check */}
+            {/* SUPER ADMIN BUTTON — Triggers LoginChoiceModal */}
             <button
               type="button"
               onClick={handleSuperAdminClick}
@@ -157,6 +159,12 @@ export default function Navbar({ menuOpen, onMenuToggle }) {
       <AdminLoginModal 
         isOpen={adminModalOpen} 
         onClose={() => setAdminModalOpen(false)} 
+      />
+
+      {/* Login Choice Modal (Super Admin vs Office Bearer) */}
+      <LoginChoiceModal
+        isOpen={loginChoiceModalOpen}
+        onClose={() => setLoginChoiceModalOpen(false)}
       />
     </>
   );
