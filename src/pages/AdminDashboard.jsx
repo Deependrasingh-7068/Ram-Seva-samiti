@@ -7,7 +7,7 @@ import {
   BookOpen, HandHeart, Heart, Sparkles, ImagePlus, Users, 
   BellRing, UserCheck, ShieldCheck, CheckCircle2, XCircle, Search, Lock, Unlock
 } from 'lucide-react';
-
+import { getEventStatus, formatTimeRange } from '../utils/eventStatus';
 const SEVA_ICONS = [
   { id: 'hand-heart', label: 'Join Hand / Prarthana (Default)', icon: HandHeart },
   { id: 'utensils', label: 'Food / Annadan (Utensils)', icon: Utensils },
@@ -98,9 +98,9 @@ export default function AdminDashboard() {
   const [eventTitle, setEventTitle] = useState('');
   const [eventCategory, setEventCategory] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
+   const [eventStartTime, setEventStartTime] = useState('');
   const [eventLocation, setEventLocation] = useState('');
-  const [eventStatus, setEventStatus] = useState('Upcoming');
+  const [eventEndTime, setEventEndTime] = useState('');
   const [eventImage, setEventImage] = useState('');
 
   // ================= GALLERY STATES =================
@@ -338,14 +338,14 @@ export default function AdminDashboard() {
     setSevaModalOpen(false);
   };
 
-  const handleOpenAddEvent = () => {
+ const handleOpenAddEvent = () => {
     setEditingEvent(null);
     setEventTitle('');
     setEventCategory('');
     setEventDate('');
-    setEventTime('');
+    setEventStartTime(''); // FIX: setEventTime ki jagah setEventStartTime
+    setEventEndTime('');   // FIX: setEventEndTime add kiya
     setEventLocation('');
-    setEventStatus('Upcoming');
     setEventImage('');
     setEventModalOpen(true);
   };
@@ -355,9 +355,9 @@ export default function AdminDashboard() {
     setEventTitle(ev.title || '');
     setEventCategory(ev.category || '');
     setEventDate(ev.date || '');
-    setEventTime(ev.time || '');
+    setEventStartTime(ev.startTime || ''); // FIX: Sahi state set ki
+    setEventEndTime(ev.endTime || '');     // FIX: Sahi state set ki
     setEventLocation(ev.location || '');
-    setEventStatus(ev.status || 'Upcoming');
     setEventImage(ev.image || '');
     setEventModalOpen(true);
   };
@@ -368,23 +368,37 @@ export default function AdminDashboard() {
       title: eventTitle,
       category: eventCategory,
       date: eventDate,
-      time: eventTime,
+      startTime: eventStartTime,
+      endTime: eventEndTime,
+      time: formatTimeRange(eventStartTime, eventEndTime),
       location: eventLocation,
-      status: eventStatus,
+      status: getEventStatus({ date: eventDate, startTime: eventStartTime, endTime: eventEndTime }),
       image: eventImage,
       adminName: loggedAdminName,
       createdBy: loggedAdminEmail
     };
 
     if (editingEvent) {
+      // Edit mode: ID ko ensure karein
       const targetId = editingEvent._id || editingEvent.id;
       await saveItemToDB('events', { ...payload, _id: targetId, id: targetId });
       triggerNotification('events', `Event details updated: ${eventTitle}`);
     } else {
+      // New Create mode
       await saveItemToDB('events', payload);
       triggerNotification('events', `New event announced: ${eventTitle}`);
     }
+    
+    // BUG FIX: Modal close karne ke baad sabhi states ko clear karna zaroori hai
     setEventModalOpen(false);
+    setEditingEvent(null);
+    setEventTitle('');
+    setEventCategory('');
+    setEventDate('');
+    setEventStartTime('');
+    setEventEndTime('');
+    setEventLocation('');
+    setEventImage('');
   };
 
   const handleOpenAddGallery = () => {
@@ -922,28 +936,37 @@ export default function AdminDashboard() {
                       <label className="text-xs font-medium text-gold/80 ml-1">Category</label>
                       <input type="text" value={eventCategory} onChange={(e) => setEventCategory(e.target.value)} placeholder="RELIGIOUS" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron" required />
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-gold/80 ml-1">Status</label>
-                      <select value={eventStatus} onChange={(e) => setEventStatus(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron cursor-pointer">
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Past">Past</option>
-                      </select>
+                                        <div className="space-y-1">
+                      <label className="text-xs font-medium text-gold/80 ml-1">Date</label>
+                      <input
+                        type="date"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron cursor-pointer [color-scheme:dark]"
+                        required
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-gold/80 ml-1">Date</label>
-                      <input 
-                        type="date" 
-                        value={eventDate} 
-                        onChange={(e) => setEventDate(e.target.value)} 
-                        className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron cursor-pointer [color-scheme:dark]" 
-                        required 
+                      <label className="text-xs font-medium text-gold/80 ml-1">Start Time</label>
+                      <input
+                        type="time"
+                        value={eventStartTime}
+                        onChange={(e) => setEventStartTime(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron cursor-pointer [color-scheme:dark]"
+                        required
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-gold/80 ml-1">Time</label>
-                      <input type="text" value={eventTime} onChange={(e) => setEventTime(e.target.value)} placeholder="प्रातः 6:00 बजे" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron" required />
+                      <label className="text-xs font-medium text-gold/80 ml-1">End Time</label>
+                      <input
+                        type="time"
+                        value={eventEndTime}
+                        onChange={(e) => setEventEndTime(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron cursor-pointer [color-scheme:dark]"
+                        required
+                      />
                     </div>
                   </div>
                   <div className="space-y-1">

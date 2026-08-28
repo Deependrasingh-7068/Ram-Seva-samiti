@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Crown, LogOut, FileText, CheckCircle2, UserCheck, Menu, X, Upload, Loader2, PlusCircle, Shield, Calendar, Image as ImageIcon, Megaphone, Trash2, Save, ArrowLeft, Award, Sparkles, ShieldCheck, Clock, Edit3, ExternalLink } from 'lucide-react';
 import axios from 'axios';
+import { getEventStatus, formatTimeRange } from '../utils/eventStatus';
 
 const formatMaskedId = (idStr) => {
   if (!idStr || idStr === 'NA') return 'NA';
@@ -29,12 +30,9 @@ export default function OfficeBearerPanel() {
   const [shortExcerpt, setShortExcerpt] = useState('');
   const [category, setCategory] = useState('');
   const [selectIcon, setSelectIcon] = useState('Join Hand / Prarthana (Default)');
-  const [eventStatus, setEventStatus] = useState('Upcoming');
-  const [date, setDate] = useState('');
-  
-  const [eventHour, setEventHour] = useState('06');
-  const [eventMinute, setEventMinute] = useState('00');
-  const [eventAmPm, setEventAmPm] = useState('AM');
+    const [date, setDate] = useState('');
+  const [eventStartTime, setEventStartTime] = useState('');
+  const [eventEndTime, setEventEndTime] = useState('');
 
   const [location, setLocation] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -63,30 +61,6 @@ export default function OfficeBearerPanel() {
       setShowAddModal(false);
     }
   }, [activeTab]);
-
-  useEffect(() => {
-    if (activeTab === 'events' && itemsList.length > 0) {
-      const now = new Date();
-      itemsList.forEach(async (ev) => {
-        if (ev.status === 'Upcoming' && ev.date) {
-          try {
-            const eventDateObj = new Date(ev.date);
-            if (now >= eventDateObj) {
-              const itemId = ev._id || ev.id;
-              await axios.put(`${import.meta.env.VITE_API_URL}/api/events/${itemId}`, {
-                ...ev,
-                status: 'Ongoing'
-              });
-              fetchItems('events');
-            }
-          } catch (e) {
-            console.error('Error auto-updating event status', e);
-          }
-        }
-      });
-    }
-  }, [itemsList, activeTab]);
-
   const fetchItems = async (type) => {
     setFetchingList(true);
     try {
@@ -161,15 +135,17 @@ export default function OfficeBearerPanel() {
           selectIcon,
           image: imageUrl
         };
-      } else if (activeTab === 'events') {
-        const formattedTime = `${eventHour}:${eventMinute} ${eventAmPm}`;
+            } else if (activeTab === 'events') {
+        const finalDate = date || new Date().toISOString().split('T')[0];
         payload = {
           ...payload,
           title,
           category: category || 'RELIGIOUS',
-          status: eventStatus,
-          date: date || new Date().toISOString().split('T')[0],
-          time: formattedTime,
+          date: finalDate,
+          startTime: eventStartTime,
+          endTime: eventEndTime,
+          time: formatTimeRange(eventStartTime, eventEndTime),
+          status: getEventStatus({ date: finalDate, startTime: eventStartTime, endTime: eventEndTime }),
           location,
           image: imageUrl
         };
@@ -215,9 +191,10 @@ export default function OfficeBearerPanel() {
         setShortExcerpt('');
         setImageUrl('');
         setDate('');
-        setEventHour('06');
-        setEventMinute('00');
-        setEventAmPm('AM');
+               setEventStartTime('');
+        setEventEndTime('');
+        setTitle('');
+        setCategory('');
         setLocation('');
         fetchItems(activeTab);
         setTimeout(() => {
@@ -259,11 +236,10 @@ export default function OfficeBearerPanel() {
     setDescription('');
     setShortExcerpt('');
     setCategory('');
-    setEventStatus('Upcoming');
+    
     setDate('');
-    setEventHour('06');
-    setEventMinute('00');
-    setEventAmPm('AM');
+            setEventStartTime('');
+        setEventEndTime('');
     setLocation('');
     setImageUrl('');
     setSuccessMsg('');
@@ -278,12 +254,8 @@ export default function OfficeBearerPanel() {
   setDate(item.date ? item.date.split('T')[0] : '');
   setLocation(item.location || '');
   setImageUrl(item.image || '');
-  setEventStatus(item.status || 'Upcoming');
-  if (item.time) {
-    const [t, ampm] = item.time.split(' ');
-    const [h, m] = (t || '').split(':');
-    setEventHour(h || '06'); setEventMinute(m || '00'); setEventAmPm(ampm || 'AM');
-  }
+    setEventStartTime(item.startTime || '');
+  setEventEndTime(item.endTime || '');
   setEditingId(item._id || item.id);
   setSuccessMsg('');
   setShowAddModal(true);
@@ -430,7 +402,8 @@ export default function OfficeBearerPanel() {
                 <div className="grid grid-cols-1 gap-4">
                   {itemsList.map((item) => {
                     const itemId = item._id || item.id;
-                    const isOngoing = item.status === 'Ongoing';
+                    const liveStatus = activeTab === 'events' ? getEventStatus(item) : null;
+const isOngoing = liveStatus === 'ongoing';
                     return (
                       <div key={itemId} className="w-full p-5 rounded-2xl bg-navy border border-gold/20 hover:border-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-md">
                         <div className="flex items-center gap-5 min-w-0">
@@ -442,11 +415,11 @@ export default function OfficeBearerPanel() {
                               <span className="text-[10px] font-mono text-saffron bg-saffron/10 px-2.5 py-0.5 rounded border border-saffron/20 inline-block">
                                 {item.date ? item.date.split('T')[0] : 'Official Post'}
                               </span>
-                              {item.status && (
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${isOngoing ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
-                                  {item.status}
-                                </span>
-                              )}
+                              {liveStatus && (
+  <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${isOngoing ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
+    {liveStatus}
+  </span>
+)}
                             </div>
                             <h4 className="text-base font-bold text-cream font-hindi truncate">{item.title || item.titleHindi}</h4>
                             <p className="text-xs text-cream/60 line-clamp-1 font-hindi">{item.description || item.shortExcerpt}</p>
@@ -556,49 +529,35 @@ export default function OfficeBearerPanel() {
                       <input type="text" value={category || 'RELIGIOUS'} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Status</label>
-                      <select value={eventStatus} onChange={(e) => setEventStatus(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none cursor-pointer">
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Ongoing">Ongoing</option>
-                        <option value="Completed">Completed</option>
-                      </select>
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Date</label>
+                      <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Date</label>
-                      <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase flex items-center gap-1">
+                        <Clock size={12} className="text-saffron" /> Start Time
+                      </label>
+                      <input
+                        type="time"
+                        required
+                        value={eventStartTime}
+                        onChange={(e) => setEventStartTime(e.target.value)}
+                        className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]"
+                      />
                     </div>
-
                     <div className="space-y-1">
                       <label className="text-[11px] font-semibold text-cream/80 uppercase flex items-center gap-1">
-                        <Clock size={12} className="text-saffron" /> Time (HH:MM AM/PM)
+                        <Clock size={12} className="text-saffron" /> End Time
                       </label>
-                      <div className="flex gap-2 items-center">
-                        <select value={eventHour} onChange={(e) => setEventHour(e.target.value)} className="w-1/3 px-2 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none cursor-pointer text-center font-mono">
-                          {['01','02','03','04','05','06','07','08','09','10','11','12'].map(h => <option key={h} value={h}>{h}</option>)}
-                        </select>
-                        <span className="text-gold font-bold">:</span>
-                        <input 
-                          type="number" 
-                          min="0" 
-                          max="59" 
-                          value={eventMinute} 
-                          onChange={(e) => {
-                            let val = parseInt(e.target.value, 10);
-                            if (isNaN(val)) val = 0;
-                            if (val > 59) val = 59;
-                            if (val < 0) val = 0;
-                            setEventMinute(String(val).padStart(2, '0'));
-                          }}
-                          className="w-1/3 px-2 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none text-center font-mono [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                        <select value={eventAmPm} onChange={(e) => setEventAmPm(e.target.value)} className="w-1/3 px-2 py-3 bg-navy border border-gold/25 rounded-xl text-gold font-bold text-xs outline-none cursor-pointer text-center">
-                          <option value="AM">AM</option>
-                          <option value="PM">PM</option>
-                        </select>
-                      </div>
+                      <input
+                        type="time"
+                        required
+                        value={eventEndTime}
+                        onChange={(e) => setEventEndTime(e.target.value)}
+                        className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]"
+                      />
                     </div>
                   </div>
 
@@ -631,10 +590,7 @@ export default function OfficeBearerPanel() {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-cream/80 uppercase">Short Excerpt</label>
-                    <input type="text" value={shortExcerpt} onChange={(e) => setShortExcerpt(e.target.value)} placeholder="1-2 लाइन का संक्षिप्त विवरण" className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none font-hindi" />
-                  </div>
+            
 
                   <div className="space-y-1">
                     <label className="text-[11px] font-semibold text-cream/80 uppercase">Full Description *</label>

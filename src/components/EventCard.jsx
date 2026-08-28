@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OBBadge from './OBBadge';
+import { getEventStatus, formatTimeRange } from '../utils/eventStatus';
 import { Calendar, Clock, MapPin, UserCheck, X, Maximize2, ArrowRight } from 'lucide-react';
 
 function formatDate(iso) {
@@ -20,16 +21,11 @@ export default function EventCard({ event, enableModal = false }) {
   const navigate = useNavigate();
 
   if (!event) return null;
-
-  // Normalize today's date to midnight for accurate day comparison
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const eventDate = event.date ? new Date(event.date) : null;
-  if (eventDate) eventDate.setHours(0, 0, 0, 0);
-
-  // Mark as Past if the date is earlier than today or explicitly marked past
-  const isPast = (event.status || '').toLowerCase() === 'past' || (eventDate && eventDate < today);
+ // Normalize today's date to midnight for accurate day comparison
+    const liveStatus = getEventStatus(event); // 'upcoming' | 'ongoing' | 'past'
+  const isPast = liveStatus === 'past';
+  const isOngoing = liveStatus === 'ongoing';
+  const timeDisplay = formatTimeRange(event.startTime, event.endTime) || event.time || '';
   
   const eventImage = event.image || (event.slug ? `/assets/events/${event.slug}.jpg` : '');
   const creatorName = event.adminName || (event.createdBy ? event.createdBy.split('@')[0] : 'Admin');
@@ -77,14 +73,16 @@ export default function EventCard({ event, enableModal = false }) {
             )}
 
             {/* Dynamic Badge */}
-            <span
+                        <span
               className={`absolute top-2.5 left-2.5 text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider uppercase shadow-md transition-colors ${
-                isPast 
-                  ? 'bg-slate-800/90 text-slate-300 border border-gold/20' 
+                isPast
+                  ? 'bg-slate-800/90 text-slate-300 border border-gold/20'
+                  : isOngoing
+                  ? 'bg-green-500 text-navy font-semibold animate-pulse'
                   : 'bg-saffron text-navy font-semibold'
               }`}
             >
-              {isPast ? 'Past Event' : 'Upcoming'}
+              {isPast ? 'Past Event' : isOngoing ? 'Ongoing' : 'Upcoming'}
             </span>
           </div>
 
@@ -104,10 +102,10 @@ export default function EventCard({ event, enableModal = false }) {
                   <span>{formatDate(event.date)}</span>
                 </p>
               )}
-              {event.time && (
+                            {timeDisplay && (
                 <p className="flex items-center gap-1.5 text-[11px]">
                   <Clock size={12} className="text-saffron shrink-0" />
-                  <span>{event.time}</span>
+                  <span>{timeDisplay}</span>
                 </p>
               )}
               {event.location && (
@@ -160,9 +158,10 @@ export default function EventCard({ event, enableModal = false }) {
                       <Calendar size={12} className="text-saffron" /> {formatDate(event.date)}
                     </span>
                   )}
-                  {event.time && (
+                                              {timeDisplay && (
+
                     <span className="flex items-center gap-1">
-                      <Clock size={12} className="text-saffron" /> {event.time}
+                      <Clock size={12} className="text-saffron" /> {timeDisplay}
                     </span>
                   )}
                 </div>

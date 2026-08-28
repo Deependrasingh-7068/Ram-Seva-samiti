@@ -7,7 +7,9 @@ const EventSchema = new mongoose.Schema(
     title: { type: String, required: true },
     category: { type: String, required: true },
     date: { type: String, required: true },
-    time: { type: String, required: true },
+    time: { type: String, default: '' },
+    startTime: { type: String, default: '' }, // "HH:MM" 24-hour
+    endTime: { type: String, default: '' },   // "HH:MM" 24-hour
     location: { type: String, required: true },
     status: { type: String, default: 'Upcoming' },
     image: { type: String, default: '' },
@@ -38,13 +40,15 @@ router.get('/all', async (req, res) => {
 // SAVE / ADD EVENT
 router.post('/save', async (req, res) => {
   try {
-        const { title, category, date, time, location, status, image, adminName, createdBy, postedByRole, authorName, bearerDesignation } = req.body;
+        const { title, category, date, time, startTime, endTime, location, status, image, adminName, createdBy, postedByRole, authorName, bearerDesignation } = req.body;
     
     const newEvent = new Event({
       title,
       category,
       date,
-      time,
+            time,
+      startTime,
+      endTime,
       location,
       status: status || 'Upcoming',
       image,
