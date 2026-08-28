@@ -134,10 +134,12 @@ router.post('/create-admin', verifySuperAdmin, async (req, res) => {
     }
 
     res.status(201).json({ success: true, message: 'Admin created & credentials processed successfully!', admin: newAdmin });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+   } catch (error) {
+    res.status(500).json({ success: false, message: error.message, error: error.message });
   }
 });
+
+// 3. Superadmin: Reset Admin Password
 
 // 3. Superadmin: Reset Admin Password (Protected)
 router.put('/reset-password/:id', verifySuperAdmin, async (req, res) => {
