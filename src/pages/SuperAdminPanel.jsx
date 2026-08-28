@@ -21,6 +21,12 @@ export default function SuperAdminPanel() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('admins');
 
+  // Helper to grab token for API calls
+  const getToken = () => {
+    const authData = JSON.parse(localStorage.getItem('superAdminAuth') || '{}');
+    return authData.token || '';
+  };
+
   // Super Admin logout — session clear karke login page pe bhej dega
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
@@ -91,7 +97,9 @@ export default function SuperAdminPanel() {
 
   const fetchAdmins = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/list`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/list`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
       const data = await res.json();
       if (data.success) setAdmins(data.admins);
     } catch (err) { console.error(err); }
@@ -99,7 +107,9 @@ export default function SuperAdminPanel() {
 
   const fetchVolunteers = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/all`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/all`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
       const data = await res.json();
       if (data.success) setVolunteers(data.volunteers);
     } catch (err) { console.error(err); }
@@ -107,7 +117,9 @@ export default function SuperAdminPanel() {
 
   const fetchOfficeBearers = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
       const data = await res.json();
       if (data.success) setOfficeBearers(data.officeBearers);
     } catch (err) { console.error(err); }
@@ -119,7 +131,6 @@ export default function SuperAdminPanel() {
     fetchOfficeBearers();
   }, []);
 
-  // UPDATED IMAGE UPLOAD VIA SECURE BACKEND /api/upload ENDPOINT WITH SHARP COMPRESSION
   const handleImageUpload = async (e, setImageCallback, setLoadingCallback) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -133,6 +144,7 @@ export default function SuperAdminPanel() {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { 
         method: 'POST', 
+        headers: { 'Authorization': `Bearer ${getToken()}` },
         body: formData 
       });
       const data = await response.json();
@@ -168,7 +180,14 @@ export default function SuperAdminPanel() {
       photo: adminPhoto || ''
     };
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/create-admin`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/create-admin`, { 
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        }, 
+        body: JSON.stringify(payload) 
+      });
       const data = await res.json();
       if (data.success) {
         alert(`Admin created successfully with ID: ${generatedAdminId}`);
@@ -185,13 +204,15 @@ export default function SuperAdminPanel() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to permanently delete this admin?')) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/delete-admin/${id}`, { method: 'DELETE' });
+        await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/delete-admin/${id}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
         fetchAdmins();
       } catch (err) { console.error(err); }
     }
   };
 
-  // Toggle Admin Freeze / Unfreeze Status
   const handleToggleFreeze = async (adm) => {
     const targetId = adm._id || adm.id;
     const newFreezeState = !adm.isFrozen;
@@ -201,7 +222,10 @@ export default function SuperAdminPanel() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/toggle-freeze/${targetId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
           body: JSON.stringify({ isFrozen: newFreezeState })
         });
         const data = await res.json();
@@ -223,7 +247,10 @@ export default function SuperAdminPanel() {
       try {
         await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/reset-password/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
           body: JSON.stringify({ newPassword }),
         });
         alert('Password reset successfully!');
@@ -257,7 +284,10 @@ export default function SuperAdminPanel() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/update-admin/${targetId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -281,7 +311,6 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Office Bearer Create Handler
   const handleCreateOfficeBearer = async (e) => {
     e.preventDefault();
     if (!obDesignation) {
@@ -312,10 +341,13 @@ export default function SuperAdminPanel() {
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/create`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-});
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(payload)
+      });
       const data = await res.json();
       if (data.success) {
         alert(data.message);
@@ -332,7 +364,6 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Office Bearer Freeze Toggle
   const handleToggleFreezeBearer = async (bearer) => {
     const targetId = bearer._id || bearer.id;
     const newFreezeState = !bearer.isFrozen;
@@ -342,7 +373,10 @@ export default function SuperAdminPanel() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/freeze/${targetId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
           body: JSON.stringify({ isFrozen: newFreezeState })
         });
         const data = await res.json();
@@ -357,12 +391,14 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Office Bearer Delete
   const handleDeleteBearer = async (bearer) => {
     const targetId = bearer._id || bearer.id;
     if (window.confirm(`Are you sure you want to permanently remove Office Bearer ${bearer.nameHindi}?`)) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/remove/${targetId}`, { method: 'DELETE' });
+        await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/remove/${targetId}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
         fetchOfficeBearers();
       } catch (err) {
         console.error(err);
@@ -370,7 +406,6 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Open Edit Office Bearer Modal
   const openEditBearerModal = (bearer) => {
     setEditingBearer(bearer);
     setEditObNameHindi(bearer.nameHindi || '');
@@ -397,7 +432,10 @@ export default function SuperAdminPanel() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/update/${targetId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -413,7 +451,6 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Toggle Volunteer Freeze / Unfreeze Status (SuperAdmin only)
   const handleToggleFreezeVolunteer = async (vol) => {
     const targetId = vol._id || vol.id;
     const newFreezeState = !vol.isFrozen;
@@ -423,7 +460,10 @@ export default function SuperAdminPanel() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/toggle-freeze/${targetId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
           body: JSON.stringify({ isFrozen: newFreezeState })
         });
         const data = await res.json();
@@ -439,12 +479,14 @@ export default function SuperAdminPanel() {
     }
   };
 
-  // Permanently Delete Volunteer (SuperAdmin only)
   const handleDeleteVolunteer = async (vol) => {
     const targetId = vol._id || vol.id;
     if (window.confirm(`Are you sure you want to permanently delete volunteer ${vol.nameHindi}? This cannot be undone.`)) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/remove/${targetId}`, { method: 'DELETE' });
+        await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/remove/${targetId}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
         fetchVolunteers();
       } catch (err) {
         console.error(err);
@@ -477,7 +519,10 @@ export default function SuperAdminPanel() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/volunteers/update-profile-secure`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -515,7 +560,6 @@ export default function SuperAdminPanel() {
     return 0;
   });
 
-  // Available designations list with strict 1-per-type check
   const allDesignations = [
     { value: 'Patron', labelEng: 'Patron', labelHindi: 'संरक्षक' },
     { value: 'President', labelEng: 'President', labelHindi: 'अध्यक्ष' },
@@ -568,7 +612,6 @@ export default function SuperAdminPanel() {
         <div className="lg:col-span-3 space-y-6">
           {activeTab === 'admins' && (
             <div className="space-y-6">
-              {/* Create New Admin Form */}
               <form onSubmit={handleCreateAdmin} className="bg-navy-2 p-8 rounded-2xl border border-gold/20 space-y-4 shadow-xl">
                 <h3 className="text-xl font-semibold text-gold">Create New Admin</h3>
                 
@@ -644,7 +687,7 @@ export default function SuperAdminPanel() {
                 </button>
               </form>
 
-              {/* Registered Admins Table with Freeze Action Toggle */}
+              {/* Registered Admins Table */}
               <div className="bg-navy-2 p-6 rounded-2xl border border-gold/10 space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-semibold text-cream">Registered Admins in Database</h3>
@@ -695,7 +738,6 @@ export default function SuperAdminPanel() {
                                 {displayEng} <span className="font-hindi text-saffron ml-1">({displayHindi})</span>
                               </td>
                               
-                              {/* Freeze Toggle Action */}
                               <td className="py-3.5 px-4 text-center">
                                 <button
                                   type="button"
@@ -743,7 +785,6 @@ export default function SuperAdminPanel() {
                   </span>
                 </div>
 
-                {/* Designation Dropdown with automatic hiding for assigned posts */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs text-gold/80">Select Designation (पद)</label>
@@ -1044,13 +1085,16 @@ export default function SuperAdminPanel() {
                     <button 
                       type="button" 
                       onClick={() => {
-                        const dobCheck = prompt('Enter Admin Date of Birth (YYYY-MM-DD) to reveal full Aadhaar:');
+                        const dobCheck = prompt('Enter Admin Date of Birth (YYYY-MM-DD) to reveal full ID:');
                         if (dobCheck) {
                           setVerifyDobInput(dobCheck);
                           const targetId = editingAdmin._id || editingAdmin.id;
                           fetch(`${import.meta.env.VITE_API_URL}/api/admin-auth/verify-dob/${targetId}`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${getToken()}`
+                            },
                             body: JSON.stringify({ dob: dobCheck })
                           })
                           .then(res => res.json())
@@ -1135,12 +1179,15 @@ export default function SuperAdminPanel() {
                   <button 
                     type="button" 
                     onClick={() => {
-                      const dobCheck = prompt('Enter Bearer Date of Birth (DDMMYYYY) to reveal full Aadhaar:');
+                      const dobCheck = prompt('Enter Bearer Date of Birth (DDMMYYYY) to reveal full ID:');
                       if (dobCheck) {
                         const targetId = editingBearer._id || editingBearer.id;
                         fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/verify-dob/${targetId}`, {
                           method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
+                          headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${getToken()}`
+                          },
                           body: JSON.stringify({ dob: dobCheck })
                         })
                         .then(res => res.json())
