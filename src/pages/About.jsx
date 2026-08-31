@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react';
 import RamBackground from '../components/RamBackground';
 import useScrollReveal from '../hooks/useScrollReveal';
-import { useAdmin } from '../context/AdminContext';
 
 const VALUES = [
   { title: 'सेवा', englishTitle: 'Seva', desc: 'निःस्वार्थ सेवा हमारे हर कार्य का केंद्र है।' },
@@ -24,18 +24,28 @@ function Section({ eyebrow, hindiTitle, englishTitle, children }) {
 }
 
 export default function About() {
-  // Admin panel se members list fetch karna
-  const { members = [] } = useAdmin();
+  const [officeBearers, setOfficeBearers] = useState([]);
 
-  // Wo member dhundhein jiska designation President ya अध्यक्ष ho
-  const presidentMember = members.find((m) => {
-    const role = (m.role || m.designation || m.position || '').toLowerCase();
-    return role.includes('president') || role.includes('अध्यक्ष');
-  });
+  // Office Bearer panel se President ka data live fetch karna
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.officeBearers)) {
+          setOfficeBearers(data.officeBearers);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  // Agar admin ne kisi ko President banaya hai toh uska naam use karo, nahi toh fallback default
-  const presidentName = presidentMember ? (presidentMember.nameHindi || presidentMember.name) : "श्री रामेश्वर तिवारी";
-  const presidentRole = presidentMember ? (presidentMember.role || presidentMember.designation || "अध्यक्ष") : "अध्यक्ष";
+  // Jo bhi Office Bearer ka designation "President" hai (aur frozen nahi hai), usi ko dikhao
+  const presidentBearer = officeBearers.find(
+    (b) => b.designation === 'President' && !b.isFrozen
+  );
+
+  // Agar Super Admin ne kisi ko President banaya hai toh uska naam use karo, nahi toh fallback default
+  const presidentName = presidentBearer ? (presidentBearer.nameHindi || presidentBearer.nameEnglish) : "NA";
+  const presidentRole = presidentBearer ? (presidentBearer.designationHindi || "अध्यक्ष") : "NA";
 
   return (
     <div className="pt-32 pb-20 bg-navy relative">

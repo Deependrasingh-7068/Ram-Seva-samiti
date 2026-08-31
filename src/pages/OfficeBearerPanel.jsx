@@ -106,7 +106,19 @@ export default function OfficeBearerPanel() {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}${endpoint}`);
       if (res.data) {
         const dataList = res.data.items || [];
-        setItemsList(Array.isArray(dataList) ? dataList : []);
+        const allItems = Array.isArray(dataList) ? dataList : [];
+
+        // Sirf isi Office Bearer ki apni posts dikhao — Admin ya doosre OB ki posts hide
+        const myEmail = (bearer?.email || '').toLowerCase().trim();
+        const myBearerId = (bearer?.bearerId || '').toLowerCase().trim();
+
+        const onlyMine = allItems.filter((item) => {
+          const creator = (item.createdBy || '').toLowerCase().trim();
+          if (!creator) return false;
+          return creator === myEmail || creator === myBearerId;
+        });
+
+        setItemsList(onlyMine);
       }
     } catch (err) {
       console.error('Failed to fetch items:', err);
