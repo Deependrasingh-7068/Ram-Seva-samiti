@@ -123,17 +123,24 @@ router.post('/create-admin', verifySuperAdmin, async (req, res) => {
       isFrozen: false,
     });
 
-    await newAdmin.save();
+       await newAdmin.save();
 
-    try {
-      if (typeof sendAdminCredentials === 'function') {
-        await sendAdminCredentials(cleanEmail, name, password || 'default123', contact);
-      }
-    } catch (emailError) {
-      console.log('Admin created in DB, but email sending failed:', emailError.message);
+    // Client ko turant response bhejo — email background mein bhejenge, isse
+    // spinner Gmail SMTP ka intezaar karke fasega nahi.
+    res.status(201).json({ success: true, message: 'Admin created & credentials processed successfully!', admin: newAdmin });
+
+    if (typeof sendAdminCredentials === 'function') {
+      sendAdminCredentials({
+        email: cleanEmail,
+        name,
+        contact,
+        aadhaar: aadhaar.trim(),
+        dob: dob.trim(),
+        loginLink: `${process.env.FRONTEND_URL || 'https://ram-sewa-samiti.vercel.app'}/?openAdminLogin=1`,
+      }).catch((emailError) => {
+        console.log('Admin created in DB, but email sending failed:', emailError.message);
+      });
     }
-
-      res.status(201).json({ success: true, message: 'Admin created & credentials processed successfully!', admin: newAdmin });
   } catch (error) {
     let msg = error.message;
     if (error.code === 11000) {

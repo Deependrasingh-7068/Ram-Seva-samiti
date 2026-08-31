@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, MessageCircle, ShieldCheck, Crown } from 'lucide-react';
 import useScrollNav from '../hooks/useScrollNav';
@@ -19,11 +19,19 @@ const LINKS = [
 
 export default function Navbar({ menuOpen, onMenuToggle }) {
   const scrolled = useScrollNav(40);
+  const searchParams = new URLSearchParams(window.location.search);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [loginChoiceModalOpen, setLoginChoiceModalOpen] = useState(false); // New state for choice modal
   
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Email ke "Login to Admin Panel" link se aane par Admin login modal apne aap khol do
+  useEffect(() => {
+    if (searchParams.get('openAdminLogin') === '1') {
+      setAdminModalOpen(true);
+    }
+  }, []);
 
   // Agar admin pehle se logged in hai (adminInfo localStorage mein hai),
   // to "Admin" button seedha /admin dashboard pe le jaaye — login modal na khule
