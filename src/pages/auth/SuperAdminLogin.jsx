@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, KeyRound, User, AlertCircle, Loader2 } from 'lucide-react';
+import { Crown, KeyRound, User, AlertCircle, Loader2, X } from 'lucide-react';
+
 
 export default function SuperAdminLogin() {
   const [superAdminId, setSuperAdminId] = useState('');
@@ -38,7 +39,15 @@ export default function SuperAdminLogin() {
 
   return (
     <div className="min-h-screen bg-navy flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm bg-navy-2 border border-amber-400/25 rounded-3xl shadow-[0_0_40px_rgba(200,164,94,0.15)] p-6 sm:p-8 space-y-6">
+      <div className="relative w-full max-w-sm bg-navy-2 border border-amber-400/25 rounded-3xl shadow-[0_0_40px_rgba(200,164,94,0.15)] p-6 sm:p-8 space-y-6">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          aria-label="Close"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 flex items-center justify-center rounded-full bg-navy border border-gold/20 text-cream/60 hover:text-cream hover:border-gold/50 transition-colors cursor-pointer"
+        >
+          <X size={16} />
+        </button>
         <div className="flex flex-col items-center text-center gap-3">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-300 via-gold to-amber-600 flex items-center justify-center shadow-lg">
             <Crown size={30} className="text-navy" />

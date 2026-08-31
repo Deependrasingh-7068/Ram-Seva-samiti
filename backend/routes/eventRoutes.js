@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const User = require('../models/User');
+const OfficeBearer = require('../models/OfficeBearer');
 
 const EventSchema = new mongoose.Schema(
   {
@@ -31,7 +33,30 @@ const Event = mongoose.model('Event', EventSchema);
 router.get('/all', async (req, res) => {
   try {
     const events = await Event.find().sort({ createdAt: -1 });
-    return res.json({ success: true, items: events });
+
+    const [frozenAdmins, frozenBearers] = await Promise.all([
+      User.find({ isFrozen: true }),
+      OfficeBearer.find({ isFrozen: true }),
+    ]);
+    const frozenEmails = [
+      ...frozenAdmins.map(a => (a.email || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.email || '').toLowerCase().trim()),
+    ];
+    const frozenNames = [
+      ...frozenAdmins.map(a => (a.name || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.nameHindi || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.nameEnglish || '').toLowerCase().trim()),
+    ];
+
+    const visibleEvents = events.filter((item) => {
+      const creator = (item.createdBy || '').toLowerCase().trim();
+      const author = (item.adminName || '').toLowerCase().trim();
+      if (frozenEmails.includes(creator) && creator) return false;
+      if (frozenNames.includes(author) && author) return false;
+      return true;
+    });
+
+    return res.json({ success: true, items: visibleEvents });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }

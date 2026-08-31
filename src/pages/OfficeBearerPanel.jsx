@@ -23,6 +23,8 @@ export default function OfficeBearerPanel() {
   const [fetchingList, setFetchingList] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
+    const [isFrozen, setIsFrozen] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -55,12 +57,45 @@ export default function OfficeBearerPanel() {
     }
   }, [navigate]);
 
+  // Live freeze-status watch: catches a freeze applied by Super Admin during an active session
   useEffect(() => {
+    const bearerId = bearer?._id || bearer?.id;
+    if (!bearerId) return;
+
+    let cancelled = false;
+
+    const checkStatus = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/office-bearers/status/${bearerId}`);
+        if (cancelled) return;
+        if (res.data?.success && res.data.isFrozen) {
+          setIsFrozen(true);
+        }
+      } catch (err) {
+        // Silent fail: don't block the dashboard on a transient network issue
+      } finally {
+        if (!cancelled) setCheckingStatus(false);
+      }
+    };
+
+    checkStatus();
+    const intervalId = setInterval(checkStatus, 20000);
+    window.addEventListener('focus', checkStatus);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+      window.removeEventListener('focus', checkStatus);
+    };
+  }, [bearer]);
+
+  useEffect(() => {
+    if (isFrozen) return;
     if (['seva', 'events', 'updates', 'gallery'].includes(activeTab)) {
       fetchItems(activeTab);
       setShowAddModal(false);
     }
-  }, [activeTab]);
+  }, [activeTab, isFrozen]);
   const fetchItems = async (type) => {
     setFetchingList(true);
     try {
@@ -261,6 +296,34 @@ export default function OfficeBearerPanel() {
   setShowAddModal(true);
 };
   if (!bearer) return null;
+
+  // BLOCK ENTIRE DASHBOARD WHEN SUPER ADMIN HAS FROZEN THIS ACCOUNT
+  if (isFrozen) {
+    return (
+      <div className="min-h-screen bg-navy text-cream flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-md bg-navy-2 border border-red-500/30 rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.15)] p-6 sm:p-8 space-y-5 text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/15 flex items-center justify-center">
+            <Shield size={30} className="text-red-400" />
+          </div>
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl text-cream font-bold">Account Frozen</h1>
+            <p className="text-sm text-red-300 font-hindi mt-2">
+              आपका खाता सुपर एडमिन द्वारा फ्रीज़ (निलंबित) कर दिया गया है। जब तक इसे अनफ्रीज़ नहीं किया जाता, तब तक आप डैशबोर्ड का उपयोग नहीं कर सकते।
+            </p>
+            <p className="text-xs text-cream/50 mt-2">
+              This account has been frozen by the Super Admin. You cannot access the dashboard or post any content until it is unfrozen. Your existing posts are also temporarily hidden from the public site.
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold shadow-lg hover:shadow-xl transition-all cursor-pointer"
+          >
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-navy text-cream flex flex-col w-full">

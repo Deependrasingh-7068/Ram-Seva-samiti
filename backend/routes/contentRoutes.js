@@ -3,8 +3,9 @@ const router = express.Router();
 const ContentItem = require('../models/ContentItem');
 const Member = require('../models/Member');
 const User = require('../models/User'); // Required to check frozen admin status
+const OfficeBearer = require('../models/OfficeBearer'); // Required to check frozen office bearer status
 
-// 1. PUBLIC ROUTE: Returns all content for public pages (Excluding frozen admins' content)
+// 1. PUBLIC ROUTE: Returns all content for public pages (Excluding frozen admins'/office bearers' content)
 router.get('/public-all/:type', async (req, res) => {
   try {
     const rawType = req.params.type.toLowerCase().trim();
@@ -15,10 +16,20 @@ router.get('/public-all/:type', async (req, res) => {
       typeQueries.push(`${rawType}s`);
     }
 
-    // Fetch all frozen admins to hide their posted content temporarily
-    const frozenAdmins = await User.find({ isFrozen: true });
-    const frozenEmails = frozenAdmins.map(a => (a.email || '').toLowerCase().trim());
-    const frozenNames = frozenAdmins.map(a => (a.name || '').toLowerCase().trim());
+    // Fetch all frozen admins AND frozen office bearers to hide their posted content temporarily
+    const [frozenAdmins, frozenBearers] = await Promise.all([
+      User.find({ isFrozen: true }),
+      OfficeBearer.find({ isFrozen: true }),
+    ]);
+    const frozenEmails = [
+      ...frozenAdmins.map(a => (a.email || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.email || '').toLowerCase().trim()),
+    ];
+    const frozenNames = [
+      ...frozenAdmins.map(a => (a.name || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.nameHindi || '').toLowerCase().trim()),
+      ...frozenBearers.map(b => (b.nameEnglish || '').toLowerCase().trim()),
+    ];
 
     // Helper filter function to check if item creator is frozen
     const isNotFrozen = (item) => {

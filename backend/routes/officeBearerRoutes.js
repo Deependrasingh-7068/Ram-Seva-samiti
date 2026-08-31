@@ -173,6 +173,19 @@ router.put('/freeze/:id', async (req, res) => {
   }
 });
 
+// 7b. LIVE STATUS CHECK (used by OB dashboard to detect a freeze during an active session)
+router.get('/status/:id', async (req, res) => {
+  try {
+    const bearer = await OfficeBearer.findById(req.params.id).select('isFrozen nameHindi');
+    if (!bearer) {
+      return res.status(404).json({ success: false, message: 'Office Bearer not found.' });
+    }
+    return res.json({ success: true, isFrozen: bearer.isFrozen });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // 7. PERMANENT REMOVE OFFICE BEARER
 router.delete('/remove/:id', async (req, res) => {
   try {

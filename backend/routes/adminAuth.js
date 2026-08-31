@@ -133,9 +133,14 @@ router.post('/create-admin', verifySuperAdmin, async (req, res) => {
       console.log('Admin created in DB, but email sending failed:', emailError.message);
     }
 
-    res.status(201).json({ success: true, message: 'Admin created & credentials processed successfully!', admin: newAdmin });
-   } catch (error) {
-    res.status(500).json({ success: false, message: error.message, error: error.message });
+      res.status(201).json({ success: true, message: 'Admin created & credentials processed successfully!', admin: newAdmin });
+  } catch (error) {
+    let msg = error.message;
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || 'field';
+      msg = `Is ${field} ke saath admin pehle se maujood hai. Kripya alag ${field} use karein.`;
+    }
+    res.status(500).json({ success: false, message: msg });
   }
 });
 
