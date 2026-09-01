@@ -71,7 +71,9 @@ export default function AdminDashboard() {
   const displayEvents = myEvents;
   const displayGallery = myGallery;
   const displayMembers = myMembers;
-  const displayUpdates = myUpdates;
+    const displayUpdates = myUpdates;
+
+
 
   const loggedAdminName = (currentAdmin?.name || currentAdmin?.username || '').trim();
   const loggedAdminEmail = (currentAdmin?.email || '').toLowerCase().trim();
@@ -80,7 +82,28 @@ export default function AdminDashboard() {
 
   const location = useLocation();
   const pathSegments = location.pathname.split('/');
-  const activeSection = pathSegments[pathSegments.length - 1] === 'admin' ? 'dashboard' : pathSegments[pathSegments.length - 1];
+  
+
+    const activeSection = pathSegments[pathSegments.length - 1] === 'admin' ? 'dashboard' : pathSegments[pathSegments.length - 1];
+
+  const [donations, setDonations] = useState([]);
+  const [donationsLoading, setDonationsLoading] = useState(false);
+  const [donationSearch, setDonationSearch] = useState('');
+
+  const filteredDonations = donations.filter((d) =>
+    (d.name || '').toLowerCase().includes(donationSearch.trim().toLowerCase())
+  );
+
+  useEffect(() => {
+    if (activeSection === 'donate') {
+      setDonationsLoading(true);
+      fetch(`${import.meta.env.VITE_API_URL}/api/donations/list`)
+        .then((res) => res.json())
+        .then((data) => { if (data.success) setDonations(data.donations); })
+        .catch((err) => console.error(err))
+        .finally(() => setDonationsLoading(false));
+    }
+  }, [activeSection]);
 
   // ================= SEVA STATES =================
   const [sevaModalOpen, setSevaModalOpen] = useState(false);
@@ -1992,6 +2015,57 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+            {activeSection === 'donate' && (
+        <div className="space-y-6">
+          <div className="bg-navy-2 p-6 rounded-2xl border border-gold/15">
+            <h1 className="font-display text-2xl text-saffron flex items-center gap-2">
+              <HeartHandshake size={24} /> Donation Records
+            </h1>
+            <p className="text-xs text-cream/60 mt-1">
+              Only successful (paid) donations are visible here.
+            </p>
+          </div>
+
+          <input
+            type="text"
+            value={donationSearch}
+            onChange={(e) => setDonationSearch(e.target.value)}
+            placeholder="Search donor by name..."
+            className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-navy-2 border border-gold/20 text-cream text-xs placeholder:text-cream/30 focus:border-saffron outline-none transition-colors"
+          />
+
+          <div className="overflow-x-auto rounded-xl border border-gold/15 bg-navy-2">
+            <table className="w-full text-left text-xs min-w-[600px]">
+              <thead className="bg-navy text-saffron uppercase tracking-wider">
+                <tr>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Contact</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gold/10">
+                {donationsLoading ? (
+                  <tr><td colSpan="5" className="py-8 text-center text-cream/50">Loading...</td></tr>
+                ) : filteredDonations.length === 0 ? (
+                  <tr><td colSpan="5" className="py-8 text-center text-cream/50">{donationSearch ? 'Is naam se koi donor nahi mila.' : 'Abhi tak koi successful donation nahi hui hai.'}</td></tr>
+                ) : (
+                  filteredDonations.map((d) => (
+                    <tr key={d._id} className="text-cream/80 hover:bg-navy/40">
+                      <td className="px-4 py-3 font-medium text-cream">{d.name}</td>
+                      <td className="px-4 py-3">{d.mobile}</td>
+                      <td className="px-4 py-3">{d.email || 'N/A'}</td>
+                      <td className="px-4 py-3 text-saffron font-semibold">₹{d.amount.toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3">{new Date(d.createdAt).toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* FALLBACK FOR REMAINING SECTIONS */}
       {activeSection !== 'seva' && 
@@ -2002,7 +2076,8 @@ export default function AdminDashboard() {
        activeSection !== 'dashboard' && 
        activeSection !== 'volunteer-requests' && 
        activeSection !== 'volunteer' && 
-       activeSection !== 'srss-volunteers' && (
+       activeSection !== 'srss-volunteers' && 
+       activeSection !== 'donate' && (
         <div className="bg-navy-2 p-8 rounded-2xl border border-gold/10 min-h-[400px] flex items-center justify-center">
           <div className="text-center space-y-2 text-cream/60">
             <h3 className="text-lg font-medium text-cream capitalize">Managing {activeSection} Section</h3>

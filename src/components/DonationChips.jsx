@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const PRESETS = [101, 501, 1100, 2100];
 
 /**
@@ -6,6 +8,12 @@ const PRESETS = [101, 501, 1100, 2100];
  * can later be wired straight into the donation-order API call.
  */
 export default function DonationChips({ amount, onSelect, customAmount, onCustomChange }) {
+  const [customFocused, setCustomFocused] = useState(false);
+
+  // Jab custom amount box active ho (focus mein ho ya kuch type ho chuka ho),
+  // preset chips ka highlight hata do — normal state mein aa jaayenge.
+  const isCustomActive = customFocused || Boolean(customAmount);
+
   return (
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" role="radiogroup" aria-label="Donation amount">
@@ -14,10 +22,13 @@ export default function DonationChips({ amount, onSelect, customAmount, onCustom
             key={preset}
             type="button"
             role="radio"
-            aria-checked={amount === preset}
-            onClick={() => onSelect(preset)}
+            aria-checked={!isCustomActive && amount === preset}
+            onClick={() => {
+              onSelect(preset);
+              onCustomChange('');
+            }}
             className={`py-3 rounded-xl border text-center transition-colors ${
-              amount === preset
+              !isCustomActive && amount === preset
                 ? 'bg-saffron border-saffron text-navy font-semibold'
                 : 'border-gold/25 text-cream/80 hover:border-gold/60'
             }`}
@@ -40,6 +51,8 @@ export default function DonationChips({ amount, onSelect, customAmount, onCustom
             inputMode="numeric"
             placeholder="Enter amount"
             value={customAmount}
+            onFocus={() => setCustomFocused(true)}
+            onBlur={() => setCustomFocused(false)}
             onChange={(e) => onCustomChange(e.target.value)}
             className="w-full pl-8 pr-4 py-3 rounded-xl bg-navy-2 border border-gold/20 text-cream placeholder:text-cream/30 focus:border-gold outline-none transition-colors"
           />

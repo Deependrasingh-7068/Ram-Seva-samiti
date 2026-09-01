@@ -14,6 +14,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const volunteerRoutes = require('./routes/volunteerRoutes');
 const officeBearerRoutes = require('./routes/officeBearerRoutes'); // Office Bearer route imported
 const eventRoutes = require('./routes/eventRoutes'); // Events route imported — ye pehle mount hi nahi thi
+const donationRoutes = require('./routes/donationRoutes');
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/office-bearers', officeBearerRoutes); // Correctly placed above 404
 app.use('/api/events', eventRoutes); // Ab events route active hai
+app.use('/api/donations', donationRoutes);
 
 // NOTE: Agar events ke liye alag route hai, toh use yahan mount karein:
 // app.use('/api/events', eventRoutes);

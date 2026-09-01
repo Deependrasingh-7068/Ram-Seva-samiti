@@ -125,10 +125,35 @@ export default function SuperAdminPanel() {
     } catch (err) { console.error(err); }
   };
 
+    const [donations, setDonations] = useState([]);
+  const [donationsLoading, setDonationsLoading] = useState(false);
+  const [donationSearch, setDonationSearch] = useState('');
+  
+
+  const fetchDonations = async () => {
+    setDonationsLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/donations/list`);
+      const data = await res.json();
+      if (data.success) setDonations(data.donations);
+    } catch (err) { console.error(err); }
+    finally { setDonationsLoading(false); }
+  };
+
+  const handleExportDonations = () => {
+    window.open(`${import.meta.env.VITE_API_URL}/api/donations/export`, '_blank');
+  };
+
+  const totalDonationAmount = donations.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const filteredDonations = donations.filter((d) =>
+    (d.name || '').toLowerCase().includes(donationSearch.trim().toLowerCase())
+  );
+
   useEffect(() => {
     fetchAdmins();
     fetchVolunteers();
     fetchOfficeBearers();
+    fetchDonations();
   }, []);
 
   const handleImageUpload = async (e, setImageCallback, setLoadingCallback) => {
@@ -996,32 +1021,65 @@ export default function SuperAdminPanel() {
           )}
 
           {activeTab === 'donations' && (
-            <div className="bg-navy-2 p-8 rounded-2xl border border-gold/20 space-y-6 shadow-xl">
-              <div>
-                <h3 className="text-xl font-semibold text-saffron flex items-center gap-2">
-                  <HeartHandshake size={22} /> Donation Management
-                </h3>
-                <p className="text-xs text-cream/70 mt-1">
-                  Manage donation records, UPI handles, bank account details, and offline contributor receipts directly from this section.
-                </p>
+            <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-6 shadow-xl">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-saffron flex items-center gap-2">
+                    <HeartHandshake size={22} /> Donation Management
+                  </h3>
+                  <p className="text-xs text-cream/70 mt-1">
+                    Only successful (paid) donations are visible here. Total collected: <span className="text-saffron font-semibold">₹{totalDonationAmount.toLocaleString('en-IN')}</span> ({donations.length} donations)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleExportDonations}
+                  disabled={donations.length === 0}
+                  className="px-4 py-2.5 rounded-xl bg-saffron hover:bg-saffron-deep disabled:opacity-40 disabled:cursor-not-allowed text-navy font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shrink-0"
+                >
+                  Download Excel Sheet
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-5 rounded-xl bg-navy border border-gold/15 space-y-3">
-                  <span className="text-xs font-semibold text-saffron uppercase tracking-wider">Contribution Ledger</span>
-                  <p className="text-xs text-cream/60">View all online and offline donations made to the Samiti.</p>
-                  <button type="button" onClick={() => alert('Contribution ledger module active.')} className="px-4 py-2 rounded-xl bg-saffron/15 text-saffron hover:bg-saffron-deep hover:text-navy font-semibold text-xs transition-all cursor-pointer">
-                    View Ledger
-                  </button>
-                </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={donationSearch}
+                  onChange={(e) => setDonationSearch(e.target.value)}
+                  placeholder="Search donor by name..."
+                  className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs placeholder:text-cream/30 focus:border-saffron outline-none transition-colors"
+                />
+              </div>
 
-                <div className="p-5 rounded-xl bg-navy border border-gold/15 space-y-3">
-                  <span className="text-xs font-semibold text-saffron uppercase tracking-wider">Bank & UPI Settings</span>
-                  <p className="text-xs text-cream/60">Configure QR codes, UPI IDs, and bank account credentials for donors.</p>
-                  <button type="button" onClick={() => alert('Bank settings configuration active.')} className="px-4 py-2 rounded-xl bg-navy border border-gold/20 text-cream text-xs font-semibold hover:border-gold/50 transition-all cursor-pointer">
-                    Configure Settings
-                  </button>
-                </div>
+              <div className="overflow-x-auto rounded-xl border border-gold/15">
+                <table className="w-full text-left text-xs min-w-[600px]">
+                  <thead className="bg-navy text-saffron uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">Contact</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gold/10">
+                    {donationsLoading ? (
+                      <tr><td colSpan="5" className="py-8 text-center text-cream/50"><Loader2 className="animate-spin inline mr-2" size={16} /> Loading...</td></tr>
+                    ) : filteredDonations.length === 0 ? (
+                      <tr><td colSpan="5" className="py-8 text-center text-cream/50">{donationSearch ? 'Is naam se koi donor nahi mila.' : 'Abhi tak koi successful donation nahi hui hai.'}</td></tr>
+                    ) : (
+                      filteredDonations.map((d) => (
+                        <tr key={d._id} className="text-cream/80 hover:bg-navy/40">
+                          <td className="px-4 py-3 font-medium text-cream">{d.name}</td>
+                          <td className="px-4 py-3">{d.mobile}</td>
+                          <td className="px-4 py-3">{d.email || 'N/A'}</td>
+                          <td className="px-4 py-3 text-saffron font-semibold">₹{d.amount.toLocaleString('en-IN')}</td>
+                          <td className="px-4 py-3">{new Date(d.createdAt).toLocaleString('en-IN')}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

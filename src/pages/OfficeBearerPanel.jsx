@@ -25,6 +25,13 @@ export default function OfficeBearerPanel() {
   const [showAddModal, setShowAddModal] = useState(false);
     const [isFrozen, setIsFrozen] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+    const [donations, setDonations] = useState([]);
+  const [donationsLoading, setDonationsLoading] = useState(false);
+  const [donationSearch, setDonationSearch] = useState('');
+
+  const filteredDonations = donations.filter((d) =>
+    (d.name || '').toLowerCase().includes(donationSearch.trim().toLowerCase())
+  );
 
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -94,6 +101,14 @@ export default function OfficeBearerPanel() {
     if (['seva', 'events', 'updates', 'gallery'].includes(activeTab)) {
       fetchItems(activeTab);
       setShowAddModal(false);
+    }
+    if (activeTab === 'donations') {
+      setDonationsLoading(true);
+      fetch(`${import.meta.env.VITE_API_URL}/api/donations/list`)
+        .then((res) => res.json())
+        .then((data) => { if (data.success) setDonations(data.donations); })
+        .catch((err) => console.error(err))
+        .finally(() => setDonationsLoading(false));
     }
   }, [activeTab, isFrozen]);
   const fetchItems = async (type) => {
@@ -364,7 +379,7 @@ export default function OfficeBearerPanel() {
           <button onClick={() => setActiveTab('events')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'events' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Events Management</button>
           <button onClick={() => setActiveTab('updates')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'updates' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Updates & Notices</button>
           <button onClick={() => setActiveTab('gallery')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'gallery' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Gallery Management</button>
-          
+          <button onClick={() => setActiveTab('donations')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'donations' ? 'bg-saffron text-navy shadow-md' : 'text-cream/80 hover:text-saffron'}`}>Donations</button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -384,6 +399,7 @@ export default function OfficeBearerPanel() {
           <button onClick={() => { setActiveTab('events'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'events' ? 'bg-saffron text-navy' : 'text-cream'}`}>Events Management</button>
           <button onClick={() => { setActiveTab('updates'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'updates' ? 'bg-saffron text-navy' : 'text-cream'}`}>Updates & Notices</button>
           <button onClick={() => { setActiveTab('gallery'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'gallery' ? 'bg-saffron text-navy' : 'text-cream'}`}>Gallery Management</button>
+                    <button onClick={() => { setActiveTab('donations'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'donations' ? 'bg-saffron text-navy' : 'text-cream'}`}>Donations</button>
           <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 text-left px-4 py-2.5 rounded-xl text-xs font-bold text-cream border-t border-gold/10 mt-2 pt-3">
   <ExternalLink size={14} /> View Website
 </a>
@@ -521,7 +537,60 @@ const isOngoing = liveStatus === 'ongoing';
 
           </div>
         )}
+                  {activeTab === 'donations' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="w-full bg-navy-2 p-6 md:p-8 rounded-3xl border border-gold/25 shadow-2xl">
+              <h2 className="font-display text-2xl text-saffron font-bold flex items-center gap-2">
+                <Crown size={22} /> Donation Records
+              </h2>
+              <p className="text-xs text-cream/60 mt-1 font-hindi">
+                Only successful (paid) donations are visible here.
+              </p>
+            </div>
 
+            <div className="w-full bg-navy-2 p-6 md:p-8 rounded-3xl border border-gold/20 shadow-xl space-y-4">
+              <input
+                type="text"
+                value={donationSearch}
+                onChange={(e) => setDonationSearch(e.target.value)}
+                placeholder="Search donor by name..."
+                className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-navy border border-gold/25 text-cream text-xs placeholder:text-cream/30 focus:border-saffron outline-none transition-colors"
+              />
+              <div className="overflow-x-auto rounded-xl border border-gold/15">
+                <table className="w-full text-left text-xs min-w-[600px]">
+                  <thead className="bg-navy text-saffron uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">Contact</th>
+                      <th className="px-4 py-3">Email</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gold/10">
+                    {donationsLoading ? (
+                      <tr><td colSpan="5" className="py-8 text-center text-cream/50"><Loader2 className="animate-spin inline mr-2" size={16} /> Loading...</td></tr>
+                    ) : filteredDonations.length === 0 ? (
+                      <tr><td colSpan="5" className="py-8 text-center text-cream/50">{donationSearch ? 'Is naam se koi donor nahi mila.' : 'Abhi tak koi successful donation nahi hui hai.'}</td></tr>
+                    ) : (
+                      filteredDonations.map((d) => (
+                        <tr key={d._id} className="text-cream/80 hover:bg-navy/40">
+                          <td className="px-4 py-3 font-medium text-cream">{d.name}</td>
+                          <td className="px-4 py-3">{d.mobile}</td>
+                          <td className="px-4 py-3">{d.email || 'N/A'}</td>
+                          <td className="px-4 py-3 text-saffron font-semibold">₹{d.amount.toLocaleString('en-IN')}</td>
+                          <td className="px-4 py-3">{new Date(d.createdAt).toLocaleString('en-IN')}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+      
       </main>
 
       {showAddModal && (
@@ -698,6 +767,7 @@ const isOngoing = liveStatus === 'ongoing';
                   </div>
                 </>
               )}
+  
 
               <div className="space-y-1 pt-1">
                 <label className="text-[11px] font-semibold text-cream/80 uppercase">Card Image / Banner</label>
