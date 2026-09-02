@@ -11,7 +11,7 @@ const OfficeBearerSchema = new mongoose.Schema(
     designation: { 
       type: String, 
       required: true, 
-      enum: ['Patron', 'President', 'General Secretary', 'Treasurer'],
+      enum: ['Patron', 'President', 'General Secretary', 'Treasurer', 'Media In-charge'],
       unique: true, // Yeh ensure karega ki database mein har designation ka sirf 1 hi document ho
       index: true 
     },

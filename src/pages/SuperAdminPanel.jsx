@@ -440,7 +440,8 @@ export default function SuperAdminPanel() {
       'Patron': 'संरक्षक',
       'President': 'अध्यक्ष',
       'General Secretary': 'महासचिव',
-      'Treasurer': 'कोषाध्यक्ष'
+      'Treasurer': 'कोषाध्यक्ष',
+      'Media In-charge': 'मीडिया प्रभारी'
     };
 
     setObLoading(true);
@@ -685,7 +686,8 @@ export default function SuperAdminPanel() {
     { value: 'Patron', labelEng: 'Patron', labelHindi: 'संरक्षक' },
     { value: 'President', labelEng: 'President', labelHindi: 'अध्यक्ष' },
     { value: 'General Secretary', labelEng: 'General Secretary', labelHindi: 'महासचिव' },
-    { value: 'Treasurer', labelEng: 'Treasurer', labelHindi: 'कोषाध्यक्ष' }
+    { value: 'Treasurer', labelEng: 'Treasurer', labelHindi: 'कोषाध्यक्ष' },
+    { value: 'Media In-charge', labelEng: 'Media In-charge', labelHindi: 'मीडिया प्रभारी' }
   ];
 
   const assignedDesignations = officeBearers.map(b => b.designation);

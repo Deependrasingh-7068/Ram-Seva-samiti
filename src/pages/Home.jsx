@@ -38,25 +38,33 @@ export default function Home() {
     updates = [] 
   } = useAdmin();
 
-  const [presidentBearer, setPresidentBearer] = useState(null);
+  const [officeBearersPreview, setOfficeBearersPreview] = useState([]);
 
-  // Live President ka data Office Bearer panel se fetch karna (Members list ka hissa nahi hota)
+  // Sabhi active Office Bearers (Patron, President, General Secretary, Treasurer) ka live data
+  // fetch karna — ye Members list ka hissa nahi hote, alag Office Bearer panel se aate hain
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`)
       .then((res) => res.json())
       .then((data) => {
         if (data?.success && Array.isArray(data.officeBearers)) {
-          const found = data.officeBearers.find((b) => b.designation === 'President' && !b.isFrozen);
-          if (found) setPresidentBearer({ ...found, bio: found.quote || '' });
+          // Designation ka priority order: Patron > President > General Secretary > Treasurer
+          const order = ['Patron', 'President', 'General Secretary', 'Treasurer', 'Media In-charge'];
+          const active = data.officeBearers
+            .filter((b) => !b.isFrozen)
+            .map((b) => ({ ...b, bio: b.quote || '' }))
+            .sort((a, b) => order.indexOf(a.designation) - order.indexOf(b.designation));
+          setOfficeBearersPreview(active);
         }
       })
       .catch(() => {});
   }, []);
 
-  // President ko team list ke sabse aage dikhana hai, baaki members uske baad
-  const teamPreview = presidentBearer
-    ? [presidentBearer, ...members.filter((m) => (m._id || m.id) !== (presidentBearer._id || presidentBearer.id))]
-    : members;
+  // Office Bearers ko team list ke sabse aage dikhana hai, baaki Members uske baad
+  const bearerIds = officeBearersPreview.map((b) => b._id || b.id);
+  const teamPreview = [
+    ...officeBearersPreview,
+    ...members.filter((m) => !bearerIds.includes(m._id || m.id)),
+  ];
 
   const aboutRef = useScrollReveal();
   const statsRef = useScrollReveal();
