@@ -10,6 +10,7 @@ import WhatsappBand from '../components/WhatsappBand';
 import useScrollReveal from '../hooks/useScrollReveal';
 import settings from '../data/settings';
 import { useAdmin } from '../context/AdminContext';
+import { useState, useEffect } from 'react';
 import OBBadge from '../components/OBBadge';
 
 function SectionHeading({ eyebrow, hindiTitle, englishTitle }) {
@@ -36,6 +37,26 @@ export default function Home() {
     gallery = [], 
     updates = [] 
   } = useAdmin();
+
+  const [presidentBearer, setPresidentBearer] = useState(null);
+
+  // Live President ka data Office Bearer panel se fetch karna (Members list ka hissa nahi hota)
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.officeBearers)) {
+          const found = data.officeBearers.find((b) => b.designation === 'President' && !b.isFrozen);
+          if (found) setPresidentBearer(found);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // President ko team list ke sabse aage dikhana hai, baaki members uske baad
+  const teamPreview = presidentBearer
+    ? [presidentBearer, ...members.filter((m) => (m._id || m.id) !== (presidentBearer._id || presidentBearer.id))]
+    : members;
 
   const aboutRef = useScrollReveal();
   const statsRef = useScrollReveal();
@@ -215,7 +236,7 @@ export default function Home() {
             ref={membersRef}
             className="reveal-stagger flex flex-wrap justify-center items-start gap-4 max-w-2xl mx-auto"
           >
-            {members.slice(0, 5).map((member) => (
+            {teamPreview.slice(0, 5).map((member) => (
               <div key={member._id || member.id} className="w-[180px]">
                 <MemberCard member={member} />
               </div>
