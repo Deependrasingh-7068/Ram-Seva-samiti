@@ -23,9 +23,9 @@ export default function OfficeBearerPanel() {
   const [fetchingList, setFetchingList] = useState(false);
 
   const [showAddModal, setShowAddModal] = useState(false);
-    const [isFrozen, setIsFrozen] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-    const [donations, setDonations] = useState([]);
+  const [donations, setDonations] = useState([]);
   const [donationsLoading, setDonationsLoading] = useState(false);
   const [donationSearch, setDonationSearch] = useState('');
 
@@ -39,7 +39,7 @@ export default function OfficeBearerPanel() {
   const [shortExcerpt, setShortExcerpt] = useState('');
   const [category, setCategory] = useState('');
   const [selectIcon, setSelectIcon] = useState('Join Hand / Prarthana (Default)');
-    const [date, setDate] = useState('');
+  const [date, setDate] = useState('');
   const [eventStartTime, setEventStartTime] = useState('');
   const [eventEndTime, setEventEndTime] = useState('');
 
@@ -55,9 +55,9 @@ export default function OfficeBearerPanel() {
     try {
       const session = JSON.parse(localStorage.getItem('officeBearerAuth') || 'null');
       if (!session || !session.token) {
-  navigate('/office-bearer/login');
-  return;
-}
+        navigate('/office-bearer/login');
+        return;
+      }
       setBearer(session.bearerInfo);
     } catch (err) {
       navigate('/office-bearer/login');
@@ -111,6 +111,7 @@ export default function OfficeBearerPanel() {
         .finally(() => setDonationsLoading(false));
     }
   }, [activeTab, isFrozen]);
+
   const fetchItems = async (type) => {
     setFetchingList(true);
     try {
@@ -197,7 +198,7 @@ export default function OfficeBearerPanel() {
           selectIcon,
           image: imageUrl
         };
-            } else if (activeTab === 'events') {
+      } else if (activeTab === 'events') {
         const finalDate = date || new Date().toISOString().split('T')[0];
         payload = {
           ...payload,
@@ -231,7 +232,7 @@ export default function OfficeBearerPanel() {
         };
       }
 
-            const isEdit = Boolean(editingId);
+      const isEdit = Boolean(editingId);
 
       const endpoint = isEdit
         ? (activeTab === 'events' ? `/api/events/${editingId}` : `/api/content/update/${editingId}`)
@@ -253,7 +254,7 @@ export default function OfficeBearerPanel() {
         setShortExcerpt('');
         setImageUrl('');
         setDate('');
-               setEventStartTime('');
+        setEventStartTime('');
         setEventEndTime('');
         setTitle('');
         setCategory('');
@@ -298,30 +299,31 @@ export default function OfficeBearerPanel() {
     setDescription('');
     setShortExcerpt('');
     setCategory('');
-    
     setDate('');
-            setEventStartTime('');
-        setEventEndTime('');
+    setEventStartTime('');
+    setEventEndTime('');
     setLocation('');
     setImageUrl('');
     setSuccessMsg('');
     setShowAddModal(true);
   };
+  
   const startEdit = (item) => {
-  setTitle(item.title || '');
-  setSubtitle(item.subtitleEnglish || item.subtitle || '');
-  setDescription(item.description || '');
-  setShortExcerpt(item.shortExcerpt || '');
-  setCategory(item.category || '');
-  setDate(item.date ? item.date.split('T')[0] : '');
-  setLocation(item.location || '');
-  setImageUrl(item.image || '');
+    setTitle(item.title || '');
+    setSubtitle(item.subtitleEnglish || item.subtitle || '');
+    setDescription(item.description || '');
+    setShortExcerpt(item.shortExcerpt || '');
+    setCategory(item.category || '');
+    setDate(item.date ? item.date.split('T')[0] : '');
+    setLocation(item.location || '');
+    setImageUrl(item.image || '');
     setEventStartTime(item.startTime || '');
-  setEventEndTime(item.endTime || '');
-  setEditingId(item._id || item.id);
-  setSuccessMsg('');
-  setShowAddModal(true);
-};
+    setEventEndTime(item.endTime || '');
+    setEditingId(item._id || item.id);
+    setSuccessMsg('');
+    setShowAddModal(true);
+  };
+
   if (!bearer) return null;
 
   // BLOCK ENTIRE DASHBOARD WHEN SUPER ADMIN HAS FROZEN THIS ACCOUNT
@@ -399,10 +401,10 @@ export default function OfficeBearerPanel() {
           <button onClick={() => { setActiveTab('events'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'events' ? 'bg-saffron text-navy' : 'text-cream'}`}>Events Management</button>
           <button onClick={() => { setActiveTab('updates'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'updates' ? 'bg-saffron text-navy' : 'text-cream'}`}>Updates & Notices</button>
           <button onClick={() => { setActiveTab('gallery'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'gallery' ? 'bg-saffron text-navy' : 'text-cream'}`}>Gallery Management</button>
-                    <button onClick={() => { setActiveTab('donations'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'donations' ? 'bg-saffron text-navy' : 'text-cream'}`}>Donations</button>
+          <button onClick={() => { setActiveTab('donations'); setMobileMenuOpen(false); }} className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold ${activeTab === 'donations' ? 'bg-saffron text-navy' : 'text-cream'}`}>Donations</button>
           <a href="/" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 text-left px-4 py-2.5 rounded-xl text-xs font-bold text-cream border-t border-gold/10 mt-2 pt-3">
-  <ExternalLink size={14} /> View Website
-</a>
+            <ExternalLink size={14} /> View Website
+          </a>
         </div>
       )}
 
@@ -494,35 +496,38 @@ export default function OfficeBearerPanel() {
                   {itemsList.map((item) => {
                     const itemId = item._id || item.id;
                     const liveStatus = activeTab === 'events' ? getEventStatus(item) : null;
-const isOngoing = liveStatus === 'ongoing';
+                    const isOngoing = liveStatus === 'ongoing';
                     return (
                       <div key={itemId} className="w-full p-5 rounded-2xl bg-navy border border-gold/20 hover:border-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-md">
-                        <div className="flex items-center gap-5 min-w-0">
+                        {/* CHANGED HERE: w-full and flex-1 added so mobile screens wrap properly */}
+                        <div className="flex items-center gap-4 sm:gap-5 min-w-0 w-full flex-1">
                           <div className="w-16 h-16 rounded-2xl overflow-hidden bg-navy-2 border border-gold/30 shrink-0 shadow-inner">
                             {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-saffron text-base font-bold">🏛️</div>}
                           </div>
-                          <div className="min-w-0 space-y-1">
-                            <div className="flex items-center gap-2">
+                          {/* CHANGED HERE: flex-1 added */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-[10px] font-mono text-saffron bg-saffron/10 px-2.5 py-0.5 rounded border border-saffron/20 inline-block">
                                 {item.date ? item.date.split('T')[0] : 'Official Post'}
                               </span>
                               {liveStatus && (
-  <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${isOngoing ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
-    {liveStatus}
-  </span>
-)}
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${isOngoing ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
+                                  {liveStatus}
+                                </span>
+                              )}
                             </div>
-                            <h4 className="text-base font-bold text-cream font-hindi truncate">{item.title || item.titleHindi}</h4>
-                            <p className="text-xs text-cream/60 line-clamp-1 font-hindi">{item.description || item.shortExcerpt}</p>
+                            {/* CHANGED HERE: truncate removed, whitespace-normal break-words added */}
+                            <h4 className="text-base font-bold text-cream font-hindi whitespace-normal break-words">{item.title || item.titleHindi}</h4>
+                            {/* CHANGED HERE: line-clamp-1 to line-clamp-2 and whitespace-normal break-words added */}
+                            <p className="text-xs text-cream/60 line-clamp-2 font-hindi whitespace-normal break-words">{item.description || item.shortExcerpt}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-3 shrink-0 w-full md:w-auto justify-end pt-3 md:pt-0 border-t border-gold/10 md:border-0">
-                        <button onClick={() => startEdit(item)} className="p-2.5 rounded-xl bg-saffron/10 text-saffron hover:bg-saffron hover:text-navy cursor-pointer transition-all shadow-sm" title="Edit Record">
-  <Edit3 size={16} />
-</button>
+                          <button onClick={() => startEdit(item)} className="p-2.5 rounded-xl bg-saffron/10 text-saffron hover:bg-saffron hover:text-navy cursor-pointer transition-all shadow-sm" title="Edit Record">
+                            <Edit3 size={16} />
+                          </button>
                           <button onClick={() => handleDeletePost(item)} className="p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white cursor-pointer transition-all shadow-sm" title="Delete Record">
-                           
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -537,7 +542,8 @@ const isOngoing = liveStatus === 'ongoing';
 
           </div>
         )}
-                  {activeTab === 'donations' && (
+        
+        {activeTab === 'donations' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="w-full bg-navy-2 p-6 md:p-8 rounded-3xl border border-gold/25 shadow-2xl">
               <h2 className="font-display text-2xl text-saffron font-bold flex items-center gap-2">
@@ -590,7 +596,6 @@ const isOngoing = liveStatus === 'ongoing';
           </div>
         )}
 
-      
       </main>
 
       {showAddModal && (
@@ -602,7 +607,7 @@ const isOngoing = liveStatus === 'ongoing';
             </button>
 
             <div>
-                            <h3 className="font-display text-xl text-cream font-bold">
+              <h3 className="font-display text-xl text-cream font-bold">
                 {activeTab === 'seva' && `${editingId ? 'Edit' : 'Add New'} Seva Card`}
                 {activeTab === 'events' && `${editingId ? 'Edit' : 'Add New'} Event`}
                 {activeTab === 'updates' && (editingId ? 'Edit Notice' : 'Publish New Notice')}
@@ -734,8 +739,6 @@ const isOngoing = liveStatus === 'ongoing';
                     </div>
                   </div>
 
-            
-
                   <div className="space-y-1">
                     <label className="text-[11px] font-semibold text-cream/80 uppercase">Full Description *</label>
                     <textarea rows={3} required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="विस्तृत विवरण..." className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none font-hindi resize-none" />
@@ -767,7 +770,6 @@ const isOngoing = liveStatus === 'ongoing';
                   </div>
                 </>
               )}
-  
 
               <div className="space-y-1 pt-1">
                 <label className="text-[11px] font-semibold text-cream/80 uppercase">Card Image / Banner</label>
@@ -803,7 +805,7 @@ const isOngoing = liveStatus === 'ongoing';
                   Cancel
                 </button>
                 <button type="submit" disabled={loading || uploadingImage} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-saffron to-amber-500 hover:from-amber-500 hover:to-saffron text-navy font-bold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
-                                    {loading ? <span>Saving...</span> : <><Save size={16} /><span>{editingId ? 'Update' : 'Publish'}</span></>}
+                  {loading ? <span>Saving...</span> : <><Save size={16} /><span>{editingId ? 'Update' : 'Publish'}</span></>}
                 </button>
               </div>
 
