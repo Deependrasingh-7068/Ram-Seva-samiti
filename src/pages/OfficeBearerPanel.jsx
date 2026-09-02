@@ -498,7 +498,7 @@ export default function OfficeBearerPanel() {
                     const liveStatus = activeTab === 'events' ? getEventStatus(item) : null;
                     const isOngoing = liveStatus === 'ongoing';
                     return (
-                      <div key={itemId} className="w-full p-5 rounded-2xl bg-navy border border-gold/20 hover:border-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-md">
+                      <div key={itemId} className="w-full min-h-[112px] p-5 rounded-2xl bg-navy border border-gold/20 hover:border-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-all shadow-md">
                         {/* CHANGED HERE: w-full and flex-1 added so mobile screens wrap properly */}
                         <div className="flex items-center gap-4 sm:gap-5 min-w-0 w-full flex-1">
                           <div className="w-16 h-16 rounded-2xl overflow-hidden bg-navy-2 border border-gold/30 shrink-0 shadow-inner">
@@ -516,10 +516,8 @@ export default function OfficeBearerPanel() {
                                 </span>
                               )}
                             </div>
-                            {/* CHANGED HERE: truncate removed, whitespace-normal break-words added */}
-                            <h4 className="text-base font-bold text-cream font-hindi whitespace-normal break-words">{item.title || item.titleHindi}</h4>
-                            {/* CHANGED HERE: line-clamp-1 to line-clamp-2 and whitespace-normal break-words added */}
-                            <p className="text-xs text-cream/60 line-clamp-2 font-hindi whitespace-normal break-words">{item.description || item.shortExcerpt}</p>
+                            <h4 className="text-base font-bold text-cream font-hindi line-clamp-2 break-words">{item.title || item.titleHindi}</h4>
+                            <p className="text-xs text-cream/60 line-clamp-2 font-hindi break-words">{item.description || item.shortExcerpt}</p>
                           </div>
                         </div>
 
