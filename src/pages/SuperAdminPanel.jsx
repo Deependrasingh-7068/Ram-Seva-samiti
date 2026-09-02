@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut, Crown } from 'lucide-react';
+import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut, Crown, CalendarClock, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Helper: Empty string ko 'NA' format mein normalize karega
@@ -128,6 +128,95 @@ export default function SuperAdminPanel() {
     const [donations, setDonations] = useState([]);
   const [donationsLoading, setDonationsLoading] = useState(false);
   const [donationSearch, setDonationSearch] = useState('');
+    const [campaigns, setCampaigns] = useState([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [campaignTitle, setCampaignTitle] = useState('');
+  const [campaignMessage, setCampaignMessage] = useState('');
+  const [campaignStart, setCampaignStart] = useState('');
+  const [campaignEnd, setCampaignEnd] = useState('');
+  const [creatingCampaign, setCreatingCampaign] = useState(false);
+
+  const [registrations, setRegistrations] = useState([]);
+  const [registrationsLoading, setRegistrationsLoading] = useState(false);
+  const [registrationSearch, setRegistrationSearch] = useState('');
+
+  const filteredRegistrations = registrations.filter((r) =>
+    (r.name || '').toLowerCase().includes(registrationSearch.trim().toLowerCase())
+  );
+
+  const fetchCampaigns = async () => {
+    setCampaignsLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/campaigns`);
+      const data = await res.json();
+      if (data.success) setCampaigns(data.campaigns);
+    } catch (err) { console.error(err); }
+    finally { setCampaignsLoading(false); }
+  };
+
+  const fetchRegistrations = async () => {
+    setRegistrationsLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/list`);
+      const data = await res.json();
+      if (data.success) setRegistrations(data.registrations);
+    } catch (err) { console.error(err); }
+    finally { setRegistrationsLoading(false); }
+  };
+
+  const handleCreateCampaign = async (e) => {
+    e.preventDefault();
+    setCreatingCampaign(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/campaign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: campaignTitle,
+          bannerMessage: campaignMessage,
+          startDate: campaignStart || null,
+          endDate: campaignEnd || null,
+          isActive: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCampaignTitle('');
+        setCampaignMessage('');
+        setCampaignStart('');
+        setCampaignEnd('');
+        fetchCampaigns();
+        alert('Registration campaign ban gayi aur banner par live ho gayi hai!');
+      } else {
+        alert(data.message || 'Campaign create nahi ho payi.');
+      }
+    } catch (err) {
+      alert('Server error: could not reach the backend.');
+    } finally {
+      setCreatingCampaign(false);
+    }
+  };
+
+  const handleToggleCampaign = async (id) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/campaign/${id}/toggle`, { method: 'PUT' });
+      const data = await res.json();
+      if (data.success) fetchCampaigns();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteCampaign = async (id) => {
+    if (!window.confirm('Ye campaign delete karni hai? Ye undo nahi hogi.')) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrations/campaign/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchCampaigns();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleExportRegistrations = () => {
+    window.open(`${import.meta.env.VITE_API_URL}/api/registrations/export`, '_blank');
+  };
   
 
   const fetchDonations = async () => {
@@ -154,6 +243,8 @@ export default function SuperAdminPanel() {
     fetchVolunteers();
     fetchOfficeBearers();
     fetchDonations();
+    fetchCampaigns();
+    fetchRegistrations();
   }, []);
 
   const handleImageUpload = async (e, setImageCallback, setLoadingCallback) => {
@@ -632,6 +723,9 @@ export default function SuperAdminPanel() {
           <button onClick={() => setActiveTab('donations')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'donations' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
             <HeartHandshake size={16} /> Donation Management
           </button>
+          <button onClick={() => setActiveTab('registrations')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'registrations' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
+            <ClipboardList size={16} /> Registration Management
+          </button>
         </div>
 
         <div className="lg:col-span-3 space-y-6">
@@ -1080,6 +1174,139 @@ export default function SuperAdminPanel() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'registrations' && (
+            <div className="space-y-6">
+              {/* NAYI CAMPAIGN BANANE KA FORM */}
+              <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-5 shadow-xl">
+                <div>
+                  <h3 className="text-xl font-semibold text-saffron flex items-center gap-2">
+                    <ClipboardList size={22} /> Registration Management
+                  </h3>
+                  <p className="text-xs text-cream/70 mt-1">
+                    Nayi registration banayenge to ye banner par turant live ho jaayegi aur website pe /register form khul jaayega. Jab tak koi active nahi hogi, banner hidden rahega.
+                  </p>
+                </div>
+
+                <form onSubmit={handleCreateCampaign} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Campaign Title</label>
+                      <input type="text" required value={campaignTitle} onChange={(e) => setCampaignTitle(e.target.value)} placeholder="राम नवमी महोत्सव 2026" className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none focus:border-saffron" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Banner Message</label>
+                      <input type="text" required value={campaignMessage} onChange={(e) => setCampaignMessage(e.target.value)} placeholder="राम नवमी महोत्सव हेतु पंजीकरण प्रारंभ हो चुका है।" className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none focus:border-saffron font-hindi" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Start Date (optional)</label>
+                      <input type="date" value={campaignStart} onChange={(e) => setCampaignStart(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">End Date (optional)</label>
+                      <input type="date" value={campaignEnd} onChange={(e) => setCampaignEnd(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={creatingCampaign} className="px-5 py-3 rounded-xl bg-gradient-to-r from-saffron to-amber-500 hover:from-amber-500 hover:to-saffron text-navy font-bold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2">
+                    {creatingCampaign ? <Loader2 size={16} className="animate-spin" /> : <CalendarClock size={16} />}
+                    {creatingCampaign ? 'Creating...' : 'Create & Make Live'}
+                  </button>
+                </form>
+              </div>
+
+              {/* SAARI CAMPAIGNS KI LIST */}
+              <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-4 shadow-xl">
+                <h3 className="text-xs font-bold text-gold uppercase tracking-widest border-b border-gold/15 pb-3">All Campaigns</h3>
+                {campaignsLoading ? (
+                  <div className="py-8 text-center text-cream/50 text-xs"><Loader2 className="animate-spin inline mr-2" size={16} /> Loading...</div>
+                ) : campaigns.length === 0 ? (
+                  <div className="py-8 text-center text-cream/50 text-xs">Abhi tak koi campaign nahi banayi gayi.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {campaigns.map((c) => (
+                      <div key={c._id} className="p-4 rounded-xl bg-navy border border-gold/15 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-cream">{c.title}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${c.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
+                              {c.isActive ? 'LIVE' : 'Inactive'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-cream/60 font-hindi mt-1">{c.bannerMessage}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button onClick={() => handleToggleCampaign(c._id)} className={`px-3 py-2 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${c.isActive ? 'bg-red-500/15 text-red-400 hover:bg-red-500 hover:text-white' : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}>
+                            {c.isActive ? 'Deactivate' : 'Activate'}
+                          </button>
+                          <button onClick={() => handleDeleteCampaign(c._id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white cursor-pointer transition-all">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SAARI REGISTRATIONS + SEARCH + EXCEL EXPORT */}
+              <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-4 shadow-xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-xs font-bold text-gold uppercase tracking-widest">All Registrations ({registrations.length})</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExportRegistrations}
+                    disabled={registrations.length === 0}
+                    className="px-4 py-2.5 rounded-xl bg-saffron hover:bg-saffron-deep disabled:opacity-40 disabled:cursor-not-allowed text-navy font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg shrink-0"
+                  >
+                    Download Excel Sheet
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  value={registrationSearch}
+                  onChange={(e) => setRegistrationSearch(e.target.value)}
+                  placeholder="Search by name..."
+                  className="w-full sm:max-w-xs px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs placeholder:text-cream/30 focus:border-saffron outline-none transition-colors"
+                />
+
+                <div className="overflow-x-auto rounded-xl border border-gold/15">
+                  <table className="w-full text-left text-xs min-w-[650px]">
+                    <thead className="bg-navy text-saffron uppercase tracking-wider">
+                      <tr>
+                        <th className="px-4 py-3">Name</th>
+                        <th className="px-4 py-3">Contact</th>
+                        <th className="px-4 py-3">Email</th>
+                        <th className="px-4 py-3">Campaign</th>
+                        <th className="px-4 py-3">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gold/10">
+                      {registrationsLoading ? (
+                        <tr><td colSpan="5" className="py-8 text-center text-cream/50"><Loader2 className="animate-spin inline mr-2" size={16} /> Loading...</td></tr>
+                      ) : filteredRegistrations.length === 0 ? (
+                        <tr><td colSpan="5" className="py-8 text-center text-cream/50">{registrationSearch ? 'Is naam se koi registration nahi mili.' : 'Abhi tak koi registration nahi hui hai.'}</td></tr>
+                      ) : (
+                        filteredRegistrations.map((r) => (
+                          <tr key={r._id} className="text-cream/80 hover:bg-navy/40">
+                            <td className="px-4 py-3 font-medium text-cream">{r.name}</td>
+                            <td className="px-4 py-3">{r.mobile}</td>
+                            <td className="px-4 py-3">{r.email || 'N/A'}</td>
+                            <td className="px-4 py-3">{r.campaignTitle || 'N/A'}</td>
+                            <td className="px-4 py-3">{new Date(r.createdAt).toLocaleString('en-IN')}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

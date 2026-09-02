@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Download, Loader2, Printer } from 'lucide-react';
 
 const LOGO_SRC = '/assets/gallery/ram_sewa_samiti_logo_transparent_1.png';
@@ -116,8 +116,25 @@ export default function VolunteerIdCard({ volunteer }) {
   const backCardRef = useRef(null);
   const printableSheetRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
+  const [presidentBearer, setPresidentBearer] = useState(null);
+
+  // Live President ka data fetch karo (Office Bearer panel se jo bhi active President hai)
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/office-bearers/all`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.officeBearers)) {
+          const found = data.officeBearers.find((b) => b.designation === 'President' && !b.isFrozen);
+          if (found) setPresidentBearer(found);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (!volunteer) return null;
+
+  const presidentNameEnglish = presidentBearer?.nameEnglish || presidentBearer?.nameHindi || 'NA';
+  const presidentNameHindi = presidentBearer?.nameHindi || 'NA';
 
   const volunteerId = volunteer.volunteerId || 'SRSS202684801';
   const nameHindi = volunteer.nameHindi || 'राहुल कुमार';
@@ -392,7 +409,7 @@ export default function VolunteerIdCard({ volunteer }) {
 
             <div className="text-center flex flex-col items-center">
               <p className="font-serif italic text-lg font-bold text-[#f5b338] tracking-wider" style={{ lineHeight: '1.2' }}>
-                Aditya Pratap
+                {presidentNameEnglish}
               </p>
               <div className="w-24 h-[1px] bg-[#f5b338]/60 my-0.5" />
               <p className="font-hindi text-[9.5px] font-semibold text-cream" style={{ lineHeight: '1.2' }}>अध्यक्ष के हस्ताक्षर</p>
@@ -503,9 +520,9 @@ export default function VolunteerIdCard({ volunteer }) {
           <div className="relative z-10 flex items-center justify-between pt-1.5 border-t border-[#f5b338]/25 text-left mt-0.5">
             <div className="space-y-0.5">
               <p className="font-serif italic text-base font-bold text-[#f5b338]" style={{ lineHeight: '1.2' }}>
-                Aditya Pratap
+                {presidentNameEnglish}
               </p>
-              <p className="font-hindi text-[11px] font-bold text-cream pt-0.5" style={{ lineHeight: '1.2' }}>(आदित्य प्रताप सिंह)</p>
+              <p className="font-hindi text-[11px] font-bold text-cream pt-0.5" style={{ lineHeight: '1.2' }}>({presidentNameHindi})</p>
               <p className="font-hindi text-[9.5px] text-[#f5b338]/90 font-medium" style={{ lineHeight: '1.2' }}>अध्यक्ष, श्री राम सेवा समिति</p>
               
               <div className="pt-1">
@@ -609,7 +626,7 @@ export default function VolunteerIdCard({ volunteer }) {
               <div className="field-row"><b>जारी करने की तिथि:</b> {dateOfIssue}</div>
               <div className="field-row"><b>Approved By:</b> {approvedBy}</div>
               <div style={{ borderTop: '1px solid #000', marginTop: '4px', paddingTop: '3px', textAlign: 'center' }}>
-                <div style={{ fontStyle: 'italic', fontFamily: 'serif', fontWeight: 'bold', fontSize: '11px' }}>Aditya Pratap</div>
+                <div style={{ fontStyle: 'italic', fontFamily: 'serif', fontWeight: 'bold', fontSize: '11px' }}>{presidentNameEnglish}</div>
                 <div style={{ fontSize: '9px' }}>अध्यक्ष (श्री राम सेवा समिति)</div>
                 <div style={{ fontSize: '8.5px', fontFamily: 'monospace' }}>हेल्पलाइन: +91 70681 80049</div>
               </div>
@@ -638,8 +655,8 @@ export default function VolunteerIdCard({ volunteer }) {
               <div style={{ fontSize: '9px', color: '#555' }}>स्वयंसेवक के हस्ताक्षर</div>
             </div>
             <div className="text-right">
-              <div style={{ fontStyle: 'italic', fontFamily: 'serif', fontWeight: 'bold' }}>Aditya Pratap</div>
-              <div><b>(आदित्य प्रताप सिंह)</b></div>
+              <div style={{ fontStyle: 'italic', fontFamily: 'serif', fontWeight: 'bold' }}>{presidentNameEnglish}</div>
+              <div><b>({presidentNameHindi})</b></div>
               <div style={{ fontSize: '9px', color: '#555' }}>अध्यक्ष, श्री राम सेवा समिति</div>
             </div>
           </div>

@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import MobileMenu from './components/MobileMenu';
 import AnnouncementBar from './components/AnnouncementBar';
 import AuthModal from './components/AuthModal';
+import VolunteerPopup from './components/VolunteerPopup';
 import Footer from './components/Footer';
 
 // Layouts
@@ -27,6 +28,7 @@ import UpdateDetails from './pages/UpdateDetails';
 import Donate from './pages/Donate';
 import Volunteer from './pages/Volunteer';
 import Contact from './pages/Contact';
+import Register from './pages/Register';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import NotFound from './pages/NotFound';
@@ -79,6 +81,7 @@ function AppShell() {
 
         <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
         <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+                  <VolunteerPopup />
 
         <main className={isAdminRoute ? '' : 'pt-[100px] md:pt-[120px]'}>
           <Routes>
@@ -94,6 +97,7 @@ function AppShell() {
             <Route path="/donate" element={<Donate />} />
             <Route path="/volunteer" element={<Volunteer />} />
             <Route path="/contact" element={<Contact />} />
+                        <Route path="/register" element={<Register />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
             
