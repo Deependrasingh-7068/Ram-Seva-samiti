@@ -21,7 +21,7 @@ router.get('/all', async (req, res) => {
 // 2. CREATE / ASSIGN OFFICE BEARER (Strictly 1 per designation)
 router.post('/create', async (req, res) => {
   try {
-    const { designation, designationHindi, nameHindi, nameEnglish, email, password, contact, aadhaarNumber, dob, photo } = req.body;
+    const { designation, designationHindi, nameHindi, nameEnglish, email, password, contact, aadhaarNumber, dob, photo, quote } = req.body;
 
     if (!designation || !nameHindi || !email || !password || !aadhaarNumber || !dob) {
       return res.status(400).json({ success: false, message: 'All required fields must be provided.' });
@@ -53,7 +53,8 @@ router.post('/create', async (req, res) => {
       contact: contact ? contact.trim() : 'NA',
       aadhaarNumber: cleanAadhaar,
       dob: cleanDob,
-      photo: photo || ''
+      photo: photo || '',
+      quote: quote ? quote.trim() : ''
     });
 
     await newBearer.save();
@@ -133,7 +134,7 @@ router.post('/verify-dob/:id', async (req, res) => {
 // 5. UPDATE OFFICE BEARER PROFILE
 router.put('/update/:id', async (req, res) => {
   try {
-    const { nameHindi, nameEnglish, email, contact, photo } = req.body;
+    const { nameHindi, nameEnglish, email, contact, photo, quote } = req.body;
     const updateData = {};
 
     if (nameHindi !== undefined) updateData.nameHindi = nameHindi.trim();
@@ -141,6 +142,7 @@ router.put('/update/:id', async (req, res) => {
     if (email !== undefined) updateData.email = email.trim().toLowerCase();
     if (contact !== undefined) updateData.contact = contact.trim();
     if (photo !== undefined) updateData.photo = photo;
+        if (quote !== undefined) updateData.quote = quote.trim();
 
     const updated = await OfficeBearer.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!updated) {

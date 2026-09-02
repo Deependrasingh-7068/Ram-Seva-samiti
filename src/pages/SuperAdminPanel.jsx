@@ -51,6 +51,7 @@ export default function SuperAdminPanel() {
   const [obAadhaar, setObAadhaar] = useState('');
   const [obDob, setObDob] = useState('');
   const [obPhoto, setObPhoto] = useState('');
+  const [obQuote, setObQuote] = useState('');
   const [obUploading, setObUploading] = useState(false);
   const [obLoading, setObLoading] = useState(false);
 
@@ -62,6 +63,7 @@ export default function SuperAdminPanel() {
   const [editObContact, setEditObContact] = useState('');
   const [editObAadhaar, setEditObAadhaar] = useState('');
   const [editObPhoto, setEditObPhoto] = useState('');
+  const [editObQuote, setEditObQuote] = useState('');
   const [editObUploading, setEditObUploading] = useState(false);
   const [revealObAadhaar, setRevealObAadhaar] = useState(false);
 
@@ -452,7 +454,8 @@ export default function SuperAdminPanel() {
       contact: sanitizeValue(obContact),
       aadhaarNumber: sanitizeValue(obAadhaar),
       dob: sanitizeValue(obDob),
-      photo: obPhoto || ''
+      photo: obPhoto || '',
+      quote: obQuote
     };
 
     try {
@@ -468,7 +471,7 @@ export default function SuperAdminPanel() {
       if (data.success) {
         alert(data.message);
         fetchOfficeBearers();
-        setObDesignation(''); setObNameHindi(''); setObNameEnglish(''); setObEmail(''); setObPassword(''); setObContact(''); setObAadhaar(''); setObDob(''); setObPhoto('');
+        setObDesignation(''); setObNameHindi(''); setObNameEnglish(''); setObEmail(''); setObPassword(''); setObContact(''); setObAadhaar(''); setObDob(''); setObPhoto(''),setObQuote('');
       } else {
         alert(data.message || 'Failed to create Office Bearer');
       }
@@ -530,6 +533,7 @@ export default function SuperAdminPanel() {
     setEditObContact(bearer.contact === 'NA' ? '' : (bearer.contact || ''));
     setEditObAadhaar(bearer.aadhaarNumber || '');
     setEditObPhoto(bearer.photo || '');
+    setEditObQuote(bearer.quote || '');
     setRevealObAadhaar(false);
   };
 
@@ -542,7 +546,8 @@ export default function SuperAdminPanel() {
       nameEnglish: editObNameEnglish.trim(),
       email: editObEmail.trim().toLowerCase(),
       contact: sanitizeValue(editObContact),
-      photo: editObPhoto || ''
+      photo: editObPhoto || '',
+      quote: editObQuote
     };
 
     try {
@@ -945,6 +950,17 @@ export default function SuperAdminPanel() {
                   <input type="text" placeholder="Aadhaar Number (12 digits)" value={obAadhaar} onChange={(e) => setObAadhaar(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron font-mono" required />
                   <input type="text" placeholder="Date of Birth (DDMMYYYY)" maxLength={8} value={obDob} onChange={(e) => setObDob(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron tracking-widest" required />
                   <input type="password" placeholder="Initial Login Password" value={obPassword} onChange={(e) => setObPassword(e.target.value)} className="px-4 py-3 rounded-xl bg-navy border border-gold/20 text-cream text-sm outline-none focus:border-saffron" required />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-gold/80">Quote / Description (optional)</label>
+                  <textarea
+                    value={obQuote}
+                    onChange={(e) => setObQuote(e.target.value)}
+                    rows={2}
+                    placeholder="Optional Quote / Description (e.g. वर्षों से समिति के साथ जुड़े, सेवा और समाजहित के लिए निरंतर समर्पित)"
+                    className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none focus:border-saffron font-hindi resize-none"
+                  />
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -1497,6 +1513,17 @@ export default function SuperAdminPanel() {
                     <Unlock size={15} />
                   </span>
                 )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs text-gold/85">Quote / Description (optional)</label>
+                <textarea
+                  value={editObQuote}
+                  onChange={(e) => setEditObQuote(e.target.value)}
+                  rows={3}
+                  placeholder="वर्षों से समिति के साथ जुड़े, सेवा और समाजहित के लिए निरंतर समर्पित"
+                  className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none focus:border-saffron font-hindi resize-none"
+                />
               </div>
 
               <div className="space-y-2">

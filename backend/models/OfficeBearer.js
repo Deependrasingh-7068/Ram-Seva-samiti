@@ -54,6 +54,10 @@ const OfficeBearerSchema = new mongoose.Schema(
       type: String, 
       default: '' 
     },
+        quote: { 
+      type: String, 
+      default: '' 
+    },
     isFrozen: { 
       type: Boolean, 
       default: false 

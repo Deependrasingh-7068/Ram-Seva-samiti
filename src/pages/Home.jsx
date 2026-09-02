@@ -47,7 +47,7 @@ export default function Home() {
       .then((data) => {
         if (data?.success && Array.isArray(data.officeBearers)) {
           const found = data.officeBearers.find((b) => b.designation === 'President' && !b.isFrozen);
-          if (found) setPresidentBearer(found);
+          if (found) setPresidentBearer({ ...found, bio: found.quote || '' });
         }
       })
       .catch(() => {});
