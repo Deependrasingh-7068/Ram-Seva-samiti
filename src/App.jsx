@@ -27,6 +27,7 @@ import Updates from './pages/Updates';
 import UpdateDetails from './pages/UpdateDetails';
 import Donate from './pages/Donate';
 import Volunteer from './pages/Volunteer';
+import AdPopup from './components/AdPopup';
 import Contact from './pages/Contact';
 import Register from './pages/Register';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -42,6 +43,7 @@ import AdminTerms from './components/AdminTerms';
 // Office Bearer Pages
 import OfficeBearerLogin from './pages/OfficeBearerLogin';
 import OfficeBearerPanel from './pages/OfficeBearerPanel';
+
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -82,6 +84,7 @@ function AppShell() {
         <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
         <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
                   <VolunteerPopup />
+                          <AdPopup />
 
         <main className={isAdminRoute ? '' : 'pt-[100px] md:pt-[120px]'}>
           <Routes>

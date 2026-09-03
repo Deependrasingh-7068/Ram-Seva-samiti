@@ -16,6 +16,7 @@ const officeBearerRoutes = require('./routes/officeBearerRoutes'); // Office Bea
 const eventRoutes = require('./routes/eventRoutes'); // Events route imported — ye pehle mount hi nahi thi
 const donationRoutes = require('./routes/donationRoutes');
 const registrationRoutes = require('./routes/registrationRoutes');
+const adRoutes = require('./routes/adRoutes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/office-bearers', officeBearerRoutes); // Correctly placed above 40
 app.use('/api/events', eventRoutes); // Ab events route active hai
 app.use('/api/donations', donationRoutes);
 app.use('/api/registrations', registrationRoutes);
+app.use('/api/ads', adRoutes);
 
 // NOTE: Agar events ke liye alag route hai, toh use yahan mount karein:
 // app.use('/api/events', eventRoutes);

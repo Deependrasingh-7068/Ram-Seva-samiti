@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut, Crown, CalendarClock, ClipboardList } from 'lucide-react';
+import { UserPlus, Shield, Trash2, KeyRound, Loader2, Search, Edit3, X, Save, Users, HeartHandshake, Image as ImageIcon, Eye, EyeOff, Lock, Unlock, ToggleLeft, ToggleRight, LogOut, Crown, CalendarClock, ClipboardList, Megaphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Helper: Empty string ko 'NA' format mein normalize karega
@@ -145,7 +145,132 @@ export default function SuperAdminPanel() {
   const filteredRegistrations = registrations.filter((r) =>
     (r.name || '').toLowerCase().includes(registrationSearch.trim().toLowerCase())
   );
+    const [ads, setAds] = useState([]);
+  const [adsLoading, setAdsLoading] = useState(false);
+  const [adImage, setAdImage] = useState('');
+  const [adUploading, setAdUploading] = useState(false);
+  const [adTitle, setAdTitle] = useState('');
+  const [adLink, setAdLink] = useState('');
+  const [adStart, setAdStart] = useState('');
+  const [adEnd, setAdEnd] = useState('');
+  const [creatingAd, setCreatingAd] = useState(false);
+    const [editingAd, setEditingAd] = useState(null);
+  const [editAdTitle, setEditAdTitle] = useState('');
+  const [editAdImage, setEditAdImage] = useState('');
+  const [editAdUploading, setEditAdUploading] = useState(false);
+  const [editAdLink, setEditAdLink] = useState('');
+  const [editAdStart, setEditAdStart] = useState('');
+  const [editAdEnd, setEditAdEnd] = useState('');
+  const [updatingAd, setUpdatingAd] = useState(false);
 
+  // ISO date string ko <input type="datetime-local"> ke format (YYYY-MM-DDTHH:mm) mein badalta hai
+  const toDatetimeLocal = (isoStr) => {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const openEditAdModal = (ad) => {
+    setEditingAd(ad);
+    setEditAdTitle(ad.title || '');
+    setEditAdImage(ad.image || '');
+    setEditAdLink(ad.link || '');
+    setEditAdStart(toDatetimeLocal(ad.startDate));
+    setEditAdEnd(toDatetimeLocal(ad.endDate));
+  };
+
+  const handleUpdateAd = async (e) => {
+    e.preventDefault();
+    if (!editingAd) return;
+    setUpdatingAd(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ads/${editingAd._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: editAdTitle,
+          image: editAdImage,
+          link: editAdLink,
+          startDate: editAdStart || null,
+          endDate: editAdEnd || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditingAd(null);
+        fetchAds();
+      } else {
+        alert(data.message || 'Ad update nahi ho payi.');
+      }
+    } catch (err) {
+      alert('Server error: could not reach the backend.');
+    } finally {
+      setUpdatingAd(false);
+    }
+  };
+
+  const fetchAds = async () => {
+    setAdsLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ads/all`);
+      const data = await res.json();
+      if (data.success) setAds(data.ads);
+    } catch (err) { console.error(err); }
+    finally { setAdsLoading(false); }
+  };
+
+  const handleCreateAd = async (e) => {
+    e.preventDefault();
+    if (!adImage) {
+      alert('Kripya pehle ad image upload karein.');
+      return;
+    }
+    setCreatingAd(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ads/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: adTitle,
+          image: adImage,
+          link: adLink,
+          startDate: adStart || null,
+          endDate: adEnd || null,
+          isActive: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdTitle(''); setAdImage(''); setAdLink(''); setAdStart(''); setAdEnd('');
+        fetchAds();
+        alert('Ad ban gayi aur website par live ho gayi hai!');
+      } else {
+        alert(data.message || 'Ad create nahi ho payi.');
+      }
+    } catch (err) {
+      alert('Server error: could not reach the backend.');
+    } finally {
+      setCreatingAd(false);
+    }
+  };
+
+  const handleToggleAd = async (id) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ads/${id}/toggle`, { method: 'PUT' });
+      const data = await res.json();
+      if (data.success) fetchAds();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteAd = async (id) => {
+    if (!window.confirm('Ye ad delete karni hai?')) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ads/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) fetchAds();
+    } catch (err) { console.error(err); }
+  };
   const fetchCampaigns = async () => {
     setCampaignsLoading(true);
     try {
@@ -247,6 +372,7 @@ export default function SuperAdminPanel() {
     fetchDonations();
     fetchCampaigns();
     fetchRegistrations();
+    fetchAds();
   }, []);
 
   const handleImageUpload = async (e, setImageCallback, setLoadingCallback) => {
@@ -732,6 +858,9 @@ export default function SuperAdminPanel() {
           </button>
           <button onClick={() => setActiveTab('registrations')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'registrations' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
             <ClipboardList size={16} /> Registration Management
+          </button>
+          <button onClick={() => setActiveTab('ads')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${activeTab === 'ads' ? 'bg-saffron text-navy font-bold' : 'text-cream/80 hover:bg-navy hover:text-saffron'}`}>
+            <Megaphone size={16} /> Ads Management
           </button>
         </div>
 
@@ -1328,6 +1457,115 @@ export default function SuperAdminPanel() {
               </div>
             </div>
           )}
+                    {activeTab === 'ads' && (
+            <div className="space-y-6">
+              {/* NAYI AD BANANE KA FORM */}
+              <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-5 shadow-xl">
+                <div>
+                  <h3 className="text-xl font-semibold text-saffron flex items-center gap-2">
+                    <Megaphone size={22} /> Ads Management
+                  </h3>
+                  <p className="text-xs text-cream/70 mt-1">
+                    Ad create karte hi ye website ke corner mein (bottom-right) sabhi visitors ko dikhne lagegi. Image landscape ho ya portrait, dono support hain — image apne natural shape mein hi dikhegi.
+                  </p>
+                </div>
+
+                <form onSubmit={handleCreateAd} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Ad Title (internal reference, optional)</label>
+                      <input type="text" value={adTitle} onChange={(e) => setAdTitle(e.target.value)} placeholder="e.g. Diwali Sponsor Ad" className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none focus:border-saffron" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Click Link (optional)</label>
+                      <input type="text" value={adLink} onChange={(e) => setAdLink(e.target.value)} placeholder="https://example.com" className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none focus:border-saffron" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">Start Date & Time (optional)</label>
+                      <input type="datetime-local" value={adStart} onChange={(e) => setAdStart(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-cream/80 uppercase">End Date & Time (optional)</label>
+                      <input type="datetime-local" value={adEnd} onChange={(e) => setAdEnd(e.target.value)} className="w-full px-4 py-3 bg-navy border border-gold/25 rounded-xl text-cream text-xs outline-none [color-scheme:dark]" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-cream/80 uppercase">Ad Image (landscape ya portrait, dono chalega)</label>
+                    <div className="flex items-center gap-2">
+                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setAdImage, setAdUploading)} className="w-full text-xs text-cream/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-saffron file:text-navy cursor-pointer bg-navy border border-gold/20 rounded-xl" />
+                      {adImage && (
+                        <button type="button" onClick={() => setAdImage('')} className="px-3 py-2 rounded-xl bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500 hover:text-white transition-colors cursor-pointer shrink-0">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    {adUploading && <p className="text-xs text-saffron flex items-center gap-1 mt-1"><Loader2 size={14} className="animate-spin" /> Uploading...</p>}
+                    {adImage && (
+                      <div className="mt-2 p-3 bg-navy rounded-xl border border-gold/15 inline-block">
+                        <img src={adImage} alt="Preview" className="max-w-[180px] max-h-[240px] w-auto h-auto object-contain rounded-lg" />
+                      </div>
+                    )}
+                  </div>
+
+                  <button type="submit" disabled={creatingAd || adUploading} className="px-5 py-3 rounded-xl bg-gradient-to-r from-saffron to-amber-500 hover:from-amber-500 hover:to-saffron text-navy font-bold text-xs shadow-lg transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2">
+                    {creatingAd ? <Loader2 size={16} className="animate-spin" /> : <Megaphone size={16} />}
+                    {creatingAd ? 'Creating...' : 'Create & Make Live'}
+                  </button>
+                </form>
+              </div>
+
+              {/* SAARI ADS KI LIST */}
+              <div className="bg-navy-2 p-6 sm:p-8 rounded-2xl border border-gold/20 space-y-4 shadow-xl">
+                <h3 className="text-xs font-bold text-gold uppercase tracking-widest border-b border-gold/15 pb-3">All Ads</h3>
+                {adsLoading ? (
+                  <div className="py-8 text-center text-cream/50 text-xs"><Loader2 className="animate-spin inline mr-2" size={16} /> Loading...</div>
+                ) : ads.length === 0 ? (
+                  <div className="py-8 text-center text-cream/50 text-xs">Abhi tak koi ad nahi banayi gayi.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {ads.map((a) => (
+                      <div key={a._id} className="p-4 rounded-xl bg-navy border border-gold/15 space-y-3">
+                        <div className="w-full h-32 rounded-lg overflow-hidden bg-navy-2 flex items-center justify-center">
+                          <img src={a.image} alt={a.title || 'Ad'} className="max-w-full max-h-full w-auto h-auto object-contain" />
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-cream truncate">{a.title || 'Untitled Ad'}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${a.isActive ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-gold/10 text-gold'}`}>
+                            {a.isActive ? 'LIVE' : 'Inactive'}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-cream/50 space-y-0.5">
+                          <p>
+                            <span className="text-gold/70">From:</span>{' '}
+                            {a.startDate ? new Date(a.startDate).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Anytime'}
+                          </p>
+                          <p>
+                            <span className="text-gold/70">Till:</span>{' '}
+                            {a.endDate ? new Date(a.endDate).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'No end date'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => handleToggleAd(a._id)} className={`flex-1 px-3 py-2 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${a.isActive ? 'bg-red-500/15 text-red-400 hover:bg-red-500 hover:text-white' : 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500 hover:text-white'}`}>
+                            {a.isActive ? 'Deactivate' : 'Activate'}
+                          </button>
+                          <button onClick={() => openEditAdModal(a)} className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white cursor-pointer transition-all">
+                            <Edit3 size={14} />
+                          </button>
+                          <button onClick={() => handleDeleteAd(a._id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white cursor-pointer transition-all">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1575,6 +1813,51 @@ export default function SuperAdminPanel() {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setEditingVolunteer(null)} className="flex-1 py-3 bg-navy border border-gold/20 text-cream rounded-xl text-xs">Cancel</button>
                 <button type="submit" className="flex-1 py-3 bg-saffron text-navy rounded-xl text-xs font-semibold"><Save size={15} className="inline mr-1" /> Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+            {editingAd && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-navy/85 backdrop-blur-sm px-4">
+          <div className="relative bg-navy-2 border border-gold/25 p-8 rounded-3xl max-w-lg w-full shadow-2xl space-y-5">
+            <button onClick={() => setEditingAd(null)} className="absolute top-5 right-5 text-cream/60 hover:text-saffron"><X size={22} /></button>
+            <h3 className="text-xl text-cream font-display">Edit Ad</h3>
+            <form onSubmit={handleUpdateAd} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="text" value={editAdTitle} onChange={(e) => setEditAdTitle(e.target.value)} placeholder="Ad Title" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none" />
+                <input type="text" value={editAdLink} onChange={(e) => setEditAdLink(e.target.value)} placeholder="Click Link" className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-cream/80 uppercase">Start Date & Time</label>
+                  <input type="datetime-local" value={editAdStart} onChange={(e) => setEditAdStart(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none [color-scheme:dark]" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-cream/80 uppercase">End Date & Time</label>
+                  <input type="datetime-local" value={editAdEnd} onChange={(e) => setEditAdEnd(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-navy border border-gold/20 text-cream text-xs outline-none [color-scheme:dark]" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-gold/85">Ad Image</label>
+                <div className="flex items-center gap-3">
+                  <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, setEditAdImage, setEditAdUploading)} className="w-full text-xs text-cream/70 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-saffron file:text-navy cursor-pointer bg-navy border rounded-xl" />
+                </div>
+                {editAdUploading && <p className="text-xs text-saffron flex items-center gap-1 mt-1"><Loader2 size={14} className="animate-spin" /> Uploading...</p>}
+                {editAdImage && (
+                  <div className="mt-2 p-3 bg-navy rounded-xl border border-gold/15 inline-block">
+                    <img src={editAdImage} alt="Preview" className="max-w-[180px] max-h-[240px] w-auto h-auto object-contain rounded-lg" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditingAd(null)} className="flex-1 py-3 bg-navy border border-gold/20 text-cream rounded-xl text-xs">Cancel</button>
+                <button type="submit" disabled={updatingAd || editAdUploading} className="flex-1 py-3 bg-saffron text-navy rounded-xl text-xs font-semibold disabled:opacity-50">
+                  {updatingAd ? 'Saving...' : <><Save size={15} className="inline mr-1" /> Save Changes</>}
+                </button>
               </div>
             </form>
           </div>
