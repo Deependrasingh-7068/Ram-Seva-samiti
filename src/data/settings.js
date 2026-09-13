@@ -11,9 +11,9 @@ const settings = {
   whatsappLink: 'https://chat.whatsapp.com/Iy1QEIDTSDQ686Iuy4UMh8',
   mapsLink: 'https://maps.app.goo.gl/VoAoT1PopaFVkuf98',
   socialLinks: {
-    facebook: 'https://facebook.com/ramsewasamiti',
-    instagram: 'https://instagram.com/ramsewasamiti',
-    youtube: 'https://youtube.com/@ramsewasamiti',
+    facebook: 'https://facebook.com/',
+    instagram: 'https://instagram.com/',
+    youtube: 'https://youtube.com/',
   },
   footerText: 'एक सेवा भावना से जुड़ा समाज, जो श्रद्धा और संस्कार को आगे ले जाता है।',
   dailyQuote: {
